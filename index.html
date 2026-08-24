@@ -32,18 +32,10 @@
 ============================================================
 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/manrope@latest/index.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
 
 <body>
-    <!-- КАСТОМНЫЙ СКРОЛЛБАР -->
-    <div class="site-scrollbar" id="siteScrollbar">
-        <div class="ss-track" id="ssTrack">
-            <div class="ss-labels" id="ssLabels"></div>
-            <i id="ssThumb"></i>
-        </div>
-    </div>
-
     <div class="page">
 
         <!-- HERO -->
@@ -102,8 +94,10 @@
                 <div class="hero-foot">
                     <div class="tags" id="heroTags"></div>
                     <div class="hero-side">
-                        <div class="progress"><span>01</span>
-                            <div class="bar"><i></i></div><span>03</span>
+                        <div class="progress">
+                            <span class="p-cur">01</span>
+                            <div class="bar"><i id="heroBar"></i></div>
+                            <span class="p-total">03</span>
                         </div>
                         <div class="hero-cards" id="heroCards">
                             <!-- Cards are populated by JS -->
@@ -164,23 +158,17 @@
                     <h4 id="expCapT">Гранит и утренний туман</h4>
                     <p id="expCapP">Йосемити, США</p>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:16px;align-items:flex-start">
-                    <div class="exp-arrows">
-                        <button class="arr ghost" id="expPrev" aria-label="Назад"><svg width="15" height="15"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                stroke-linecap="round">
-                                <path d="M15 6l-6 6 6 6" />
-                            </svg></button>
-                        <button class="arr" id="expNext" aria-label="Вперёд"><svg width="15" height="15"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                stroke-linecap="round">
-                                <path d="M9 6l6 6-6 6" />
-                            </svg></button>
-                    </div>
-                    <a class="seeall" href="#works"><span data-i18n="seeAll">Смотреть все</span> <svg width="26" height="10" viewBox="0 0 26 10"
-                            fill="none" stroke="currentColor" stroke-width="1.4">
-                            <path d="M0 5h24M20 1l4 4-4 4" />
-                        </svg></a>
+                <div class="exp-arrows">
+                    <button class="arr ghost" id="expPrev" aria-label="Назад"><svg width="15" height="15"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round">
+                            <path d="M15 6l-6 6 6 6" />
+                        </svg></button>
+                    <button class="arr" id="expNext" aria-label="Вперёд"><svg width="15" height="15"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round">
+                            <path d="M9 6l6 6-6 6" />
+                        </svg></button>
                 </div>
             </div>
         </section>
@@ -191,7 +179,7 @@
                 <div>
                     <div class="label" data-i18n="sec3">(03)<b>Мои работы</b></div>
                     <h2 data-content-key="worksTitle"><span class="w">Исследуйте</span> искусство и точность <span class="w">моего портфолио</span>
-                        вечной фотографии</h2>
+                        фотографии вне времени</h2>
                 </div>
                 <div class="right">
                     <p data-content-key="worksDesc">Отправьтесь в визуальное путешествие по избранным кадрам. Клик по карточке откроет галерею с деталями съёмки.</p>
@@ -226,13 +214,13 @@
         <!-- CONTACT -->
         <footer class="contact reveal" id="contacts">
             <div class="contact-top">
-                <h2><span data-i18n="sec7">(07) Контакты</span><br><span data-content-key="contactTitle1">Давайте <span class="w">обсудим</span> ваше видение</span>
+                <h2><span data-i18n="sec7">(07) Контакты</span><br><span data-content-key="contactTitle1">Давайте <span class="w">снимать</span> вместе</span>
                     <span class="inline-cta"><button class="btn-white js-contact" style="padding:14px 22px" data-i18n="talkBtn">ДАВАЙТЕ
                             ПОГОВОРИМ</button><span class="arr"><svg width="14" height="14" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
                                 <path d="M7 17L17 7M9 7h8v8" />
                             </svg></span></span>
-                    <span class="w" data-content-key="contactTitle2">вместе</span>
+                    <span class="w" data-content-key="contactTitle2"></span>
                 </h2>
                 <div class="addr">
                     <span data-content-key="contactLoc">Israel</span><br>
@@ -341,7 +329,7 @@
     <input type="file" id="fileInput" accept="image/*" hidden>
     <div id="toast"></div>
 
-    <script type="module" src="main.js?v=7"></script>
+    <script type="module" src="main.js?v=10"></script>
 </body>
 
 </html>

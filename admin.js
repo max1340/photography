@@ -248,13 +248,23 @@ $('#editForm').onsubmit = async (e) => {
     const id = $('#editId').value || ('item_' + Date.now());
     const finalUrl = uploadUrls.length > 0 ? uploadUrls[0] : '';
     let data = {};
+    const otherLang = currentAdminLang === 'ru' ? 'en' : 'ru';
 
     if (currentMode === 'hero') {
         const title = $('#editField1').value;
         const sub = $('#editField2').value;
         const tags = $('#editFieldTags').value.split(',').map(s=>s.trim()).filter(Boolean);
         data = { id, title, sub, tags, url: finalUrl };
+        
         await dbPut('hero_slides_' + currentAdminLang, id, data);
+        if (!$('#editId').value) {
+            await dbPut('hero_slides_' + otherLang, id, data);
+        } else {
+            try {
+                const other = await dbGetObj('hero_slides_' + otherLang + '/' + id);
+                if (other) { other.url = finalUrl; await dbPut('hero_slides_' + otherLang, id, other); }
+            } catch(e){}
+        }
     } else if (currentMode === 'works') {
         const title = $('#editField1').value;
         const sub = $('#editField2').value;
@@ -265,11 +275,23 @@ $('#editForm').onsubmit = async (e) => {
         if (editId) {
             data = { id: editId, title, sub, place, tags, url: finalUrl };
             await dbPut('works_' + currentAdminLang, editId, data);
+            try {
+                const other = await dbGetObj('works_' + otherLang + '/' + editId);
+                if (other) {
+                    other.url = finalUrl;
+                    if (!other.place && place) other.place = place;
+                    await dbPut('works_' + otherLang, editId, other);
+                } else {
+                    await dbPut('works_' + otherLang, editId, data);
+                }
+            } catch(e){}
         } else {
             for (const url of uploadUrls) {
                 const newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                 data = { id: newId, title, sub, place, tags, url: url };
-                await dbPut('works_' + currentAdminLang, newId, data);
+                // Сохраняем в обе языковые версии
+                await dbPut('works_ru', newId, data);
+                await dbPut('works_en', newId, data);
             }
         }
     } else {
@@ -285,6 +307,14 @@ $('#editForm').onsubmit = async (e) => {
             content: $('#editField3').value 
         };
         await dbPut('posts_' + currentAdminLang, id, data);
+        if (!$('#editId').value) {
+            await dbPut('posts_' + otherLang, id, data);
+        } else {
+            try {
+                const other = await dbGetObj('posts_' + otherLang + '/' + id);
+                if (other) { other.img = finalUrl; other.images = uploadUrls; await dbPut('posts_' + otherLang, id, other); }
+            } catch(e){}
+        }
     }
 
     closeM($('#editModal'));
@@ -299,9 +329,9 @@ function createCard(item, mode) {
     el.innerHTML = `
         <img src="${item.img || item.url}" alt="">
         <div class="card-body">
-            <h4>${item.title}</h4>
+            <h4>${item.title || '(Без названия)'}</h4>
             ${item.sub ? `<div style="font-size:12px; color:var(--text); opacity:0.8; margin-top:2px;">${item.sub}</div>` : ''}
-            ${item.place ? `<div style="font-size:12px; color:var(--gray); margin-top:2px;">📍 ${item.place}</div>` : ''}
+            ${item.place ? `<div style="font-size:12px; color:var(--gray); margin-top:2px; display:inline-flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${item.place}</div>` : ''}
             <p style="margin-top:4px;">${(item.tags || []).join(', ') || item.excerpt || ''}</p>
         </div>
         <div class="card-actions">
@@ -312,8 +342,16 @@ function createCard(item, mode) {
     el.querySelector('.edit-btn').onclick = () => openEdit(item, mode);
     el.querySelector('.del-btn').onclick = async () => {
         if (confirm('Точно удалить?')) {
-            const collection = mode === 'hero' ? 'hero_slides_' + currentAdminLang : mode === 'works' ? 'works_' + currentAdminLang : 'posts_' + currentAdminLang;
-            await dbDel(collection, item.id);
+            if (mode === 'hero') {
+                await dbDel('hero_slides_ru', item.id);
+                await dbDel('hero_slides_en', item.id);
+            } else if (mode === 'works') {
+                await dbDel('works_ru', item.id);
+                await dbDel('works_en', item.id);
+            } else {
+                await dbDel('posts_ru', item.id);
+                await dbDel('posts_en', item.id);
+            }
             el.remove();
             toast('Удалено');
         }

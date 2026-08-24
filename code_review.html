@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Как прислать проект · M.Photo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/manrope@latest/index.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/manrope@latest/700.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/manrope@latest/800.css" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#151612; --panel:#1d1f19; --panel2:#262921; --line:#32352b;
+    --text:#f1efe8; --muted:#9a9d90; --accent:#c9d1b6;
+    --red:#ff6f61; --green:#8fd48f; --amber:#f0b04c; --r:22px;
+  }
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'Manrope',system-ui,sans-serif;line-height:1.6}
+  ::selection{background:var(--accent);color:#151612}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 28px}
+
+  .topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(21,22,18,.78);border-bottom:1px solid var(--line)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800}
+  .logo-badge{width:34px;height:34px;border-radius:12px;background:var(--text);color:#151612;display:grid;place-items:center}
+  .top-meta{color:var(--muted);font-size:13px}
+  @media(max-width:640px){.top-meta{display:none}}
+
+  .hero{padding:70px 0 30px}
+  .kicker{color:var(--muted);font-size:14px;margin-bottom:16px}
+  h1{font-size:clamp(32px,5vw,58px);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+  h1 .dim{color:var(--muted)}
+  .lead{color:var(--muted);max-width:780px;margin-top:18px;font-size:17px}
+  .lead b{color:var(--text)}
+
+  section{padding:40px 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px}
+  .sec-num{color:var(--muted);font-size:14px}
+  h2{font-size:clamp(22px,3vw,34px);font-weight:800;letter-spacing:-.02em}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .step{padding:22px 24px;transition:transform .25s,border-color .25s}
+  .step:hover{transform:translateY(-3px);border-color:#4a4e40}
+  .step-n{font-size:13px;font-weight:800;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:3px 11px;display:inline-block;margin-bottom:12px}
+  .step p{color:var(--muted);font-size:14.5px}
+  .step p b{color:var(--text)}
+
+  .tool{padding:34px}
+  .tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+  @media(max-width:860px){.tool-grid{grid-template-columns:1fr}}
+  .col h3{font-size:15px;font-weight:800;margin-bottom:12px;letter-spacing:.02em}
+  .col h3 .n{color:var(--accent)}
+  input,textarea{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:14px;
+    color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;transition:border-color .2s;
+  }
+  input:focus,textarea:focus{border-color:var(--accent)}
+  input.err{border-color:var(--red);animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  #fContent{min-height:130px;resize:vertical;margin-top:10px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;line-height:1.5}
+  .task{min-height:84px;resize:vertical}
+  #preview{min-height:220px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.5;color:var(--muted)}
+  .row{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .btn{border:none;border-radius:999px;padding:12px 22px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:transform .2s,opacity .2s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.primary{background:var(--text);color:#151612}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn.ghost:hover{color:var(--text)}
+
+  .file-list{margin-top:18px;display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto}
+  .file-row{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+  .file-ico{color:var(--accent);font-size:12px}
+  .file-name{font-size:13.5px;font-weight:700;word-break:break-all}
+  .file-meta{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap}
+  .del{border:none;background:transparent;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 6px;border-radius:8px}
+  .del:hover{color:var(--red);background:rgba(255,111,97,.1)}
+  .empty{color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:14px;padding:14px;text-align:center}
+
+  .meta{color:var(--muted);font-size:13px;margin:0 0 10px}
+  .warn{margin-top:14px;background:rgba(240,176,76,.1);border:1px solid rgba(240,176,76,.4);color:var(--amber);border-radius:14px;padding:12px 16px;font-size:13.5px}
+
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+    background:var(--green);color:#151612;font-weight:800;border-radius:999px;padding:12px 26px;transition:.3s;z-index:99;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-size:13px;margin-top:30px}
+  footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logo"><span class="logo-badge">✳</span> M.Photo · Воркфлоу</div>
+    <div class="top-meta">как прислать проект на доработку</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <p class="kicker">(01) Процесс</p>
+    <h1>Присылай проект <span class="dim">текстом прямо в чат</span></h1>
+    <p class="lead">
+      Я читаю код непосредственно из сообщения: ссылки и репозитории мне не открыть, а текст — да.
+      Самый надёжный способ — собрать проект в <b>одно сообщение</b> упаковщиком ниже:
+      структура + содержимое каждого файла с именем. Дальше я верну готовые файлы целиком — просто заменишь.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">(02)</span><h2>Правила отправки</h2></div>
+    <div class="steps">
+      <div class="card step"><span class="step-n">1</span><p><b>Один файл — один блок.</b> Сверху укажи путь: «Файл: index.html». Так правки будут точно привязаны к именам.</p></div>
+      <div class="card step"><span class="step-n">2</span><p><b>Начни с главного.</b> Структура + index.html + стили + скрипты. Если понадобится остальное (переводы, компоненты) — я попрошу.</p></div>
+      <div class="card step"><span class="step-n">3</span><p><b>Без лишнего.</b> Не нужны node_modules, сборки и библиотеки с CDN — только твой собственный исходный код.</p></div>
+      <div class="card step"><span class="step-n">4</span><p><b>Большой проект — по частям.</b> Если суммарно больше ~100–150 КБ текста, присылай в 2–3 сообщениях подряд.</p></div>
+      <div class="card step"><span class="step-n">5</span><p><b>Задача — отдельно.</b> Конкретно опиши, что правим и что не трогаем (например: «левый навигатор убираю сам, его не смотри»).</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">(03)</span><h2>Упаковщик проекта в одно сообщение</h2></div>
+    <div class="card tool">
+      <div class="tool-grid">
+
+        <div class="col">
+          <h3><span class="n">1.</span> Добавь файлы</h3>
+          <input id="fName" placeholder="Путь файла: index.html, css/style.css, js/main.js…" autocomplete="off" />
+          <textarea id="fContent" placeholder="Вставь сюда содержимое файла…"></textarea>
+          <div class="row">
+            <button id="addBtn" class="btn primary">Добавить файл</button>
+            <button id="clearBtn" class="btn ghost">Очистить всё</button>
+          </div>
+          <div id="fileList" class="file-list"></div>
+        </div>
+
+        <div class="col">
+          <h3><span class="n">2.</span> Опиши задачу</h3>
+          <textarea id="task" class="task" placeholder="Например: правим контраст хиро и слайдер, убираю системный скроллбар сам, сетку портфолио не трогать…"></textarea>
+          <h3 style="margin-top:22px"><span class="n">3.</span> Скопируй результат</h3>
+          <div class="meta" id="meta">0 файлов · 0.0 КБ</div>
+          <textarea id="preview" readonly placeholder="Здесь появится собранное сообщение для чата…"></textarea>
+          <div class="row">
+            <button id="copyBtn" class="btn primary">Скопировать сообщение</button>
+            <button id="dlBtn" class="btn ghost">Скачать .txt</button>
+          </div>
+          <div id="warn" class="warn" hidden></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Воркфлоу · M.Photo</span>
+    <span>файлы хранятся только в твоём браузере (localStorage)</span>
+  </div>
+</footer>
+
+<div id="toast" class="toast">Скопировано ✓</div>
+
+<script>
+(function(){
+  var files = [];
+  var $ = function(id){ return document.getElementById(id); };
+  var nameEl = $('fName'), contentEl = $('fContent'), taskEl = $('task'),
+      listEl = $('fileList'), previewEl = $('preview'), metaEl = $('meta'), warnEl = $('warn');
+
+  /* ---------- storage ---------- */
+  function save(){ try{ localStorage.setItem('mphoto_pack', JSON.stringify({files:files, task:taskEl.value})); }catch(e){} }
+  function load(){ try{ var d = JSON.parse(localStorage.getItem('mphoto_pack')||'null'); if(d){ files = d.files||[]; taskEl.value = d.task||''; } }catch(e){} }
+
+  /* ---------- дерево структуры ---------- */
+  function norm(p){ return p.trim().replace(/\\/g,'/').replace(/\/+/g,'/'); }
+  function buildTree(paths){
+    var root = {};
+    paths.forEach(function(p){
+      var parts = norm(p).split('/').filter(Boolean), node = root;
+      for(var i=0;i<parts.length;i++){
+        if(i === parts.length-1){ node[parts[i]] = null; }
+        else{
+          if(!node[parts[i]] || typeof node[parts[i]] !== 'object'){ node[parts[i]] = {}; }
+          node = node[parts[i]];
+        }
+      }
+    });
+    return root;
+  }
+  function renderTree(node, prefix, out){
+    var keys = Object.keys(node).sort(function(a,b){
+      var af = node[a] !== null ? 0 : 1, bf = node[b] !== null ? 0 : 1;
+      return (af - bf) || a.localeCompare(b);
+    });
+    keys.forEach(function(k,i){
+      var last = i === keys.length-1;
+      out.push(prefix + (last ? '└── ' : '├── ') + k);
+      if(node[k] !== null){ renderTree(node[k], prefix + (last ? '    ' : '│   '), out); }
+    });
+    return out;
+  }
+
+  /* ---------- сборка сообщения ---------- */
+  function buildMessage(){
+    if(!files.length){ return ''; }
+    var L = [];
+    L.push('Привет! Вот мой сайт на доработку.');
+    L.push('Задача: ' + (taskEl.value.trim() || '—'));
+    L.push('');
+    L.push('Структура проекта:');
+    renderTree(buildTree(files.map(function(f){ return f.name; })), '', L);
+    files.forEach(function(f){
+      L.push('');
+      L.push('=== Файл: ' + f.name + ' ===');
+      L.push(f.content);
+    });
+    L.push('');
+    L.push('Жду правки целыми файлами с именами, спасибо!');
+    return L.join('\n');
+  }
+
+  function update(){
+    /* список */
+    listEl.innerHTML = '';
+    if(!files.length){
+      listEl.innerHTML = '<div class="empty">Пока пусто — добавь первый файл слева</div>';
+    }else{
+      files.forEach(function(f,i){
+        var row = document.createElement('div');
+        row.className = 'file-row';
+        var lines = f.content ? f.content.split('\n').length : 0;
+        row.innerHTML = '<span class="file-ico">▤</span><span class="file-name"></span>' +
+                        '<span class="file-meta">' + lines + ' строк</span>' +
+                        '<button class="del" data-i="' + i + '" title="Убрать">✕</button>';
+        row.querySelector('.file-name').textContent = f.name;
+        listEl.appendChild(row);
+      });
+    }
+    /* превью */
+    var msg = buildMessage();
+    previewEl.value = msg;
+    var kb = (msg.length / 1024).toFixed(1);
+    metaEl.textContent = files.length + ' файл(ов) · ' + kb + ' КБ';
+    if(msg.length > 150000){
+      warnEl.hidden = false;
+      warnEl.textContent = 'Сообщение огромное (~' + kb + ' КБ). Лучше отправить в 2–3 сообщениях: сначала структура и половина файлов, затем остальное.';
+    }else{
+      warnEl.hidden = true;
+    }
+    save();
+  }
+
+  /* ---------- действия ---------- */
+  $('addBtn').addEventListener('click', function(){
+    var n = norm(nameEl.value);
+    if(!n){ nameEl.classList.add('err'); setTimeout(function(){ nameEl.classList.remove('err'); }, 400); nameEl.focus(); return; }
+    var ex = files.filter(function(f){ return f.name === n; })[0];
+    if(ex){ ex.content = contentEl.value; } else { files.push({name:n, content:contentEl.value}); }
+    nameEl.value = ''; contentEl.value = ''; nameEl.focus();
+    update();
+  });
+  nameEl.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); $('addBtn').click(); } });
+
+  listEl.addEventListener('click', function(e){
+    var b = e.target.closest('.del'); if(!b) return;
+    files.splice(+b.dataset.i, 1); update();
+  });
+
+  $('clearBtn').addEventListener('click', function(){ files = []; update(); });
+  taskEl.addEventListener('input', update);
+
+  function copyText(t){
+    if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(t); }
+    var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta); return Promise.resolve();
+  }
+  var toastT;
+  function toast(){ var t = $('toast'); t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('show'); }, 1800); }
+
+  $('copyBtn').addEventListener('click', function(){
+    if(!previewEl.value) return;
+    copyText(previewEl.value).then(toast);
+  });
+
+  $('dlBtn').addEventListener('click', function(){
+    if(!previewEl.value) return;
+    var blob = new Blob([previewEl.value], {type:'text/plain;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'project-for-review.txt';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(a.href);
+    toast();
+  });
+
+  load();
+  update();
+})();
+</script>
+</body>
+</html>

@@ -22,73 +22,7 @@ body {
     font-family: 'Manrope', system-ui, sans-serif;
     color: var(--white);
     padding: 44px 18px;
-    scrollbar-width: none;
-}
-
-body::-webkit-scrollbar {
-    display: none;
-}
-
-.site-scrollbar {
-    position: fixed;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 60vh;
-    width: 125px;
-    z-index: 100;
-}
-
-.ss-track {
-    width: 100%;
-    height: 100%;
-    background: rgba(30, 30, 30, 0.7);
-    backdrop-filter: blur(14px);
-    position: relative;
-    border-radius: 999px;
-    cursor: pointer;
-}
-
-.ss-track i {
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    right: 4px;
-    width: auto;
-    min-height: 44px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 999px;
-    transition: background .2s;
-    z-index: 1;
-}
-
-.ss-track:hover i {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.ss-labels {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.ss-label {
-    position: absolute;
-    left: 0; 
-    right: 0;
-    text-align: center;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-50%);
-    transition: color 0.2s;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.ss-label.active {
-    color: #fff;
-    font-weight: 700;
+    min-height: 100vh;
 }
 
 img {
@@ -464,13 +398,13 @@ button {
 }
 
 .hero-side {
-    width: min(680px, 100%);
+    width: min(580px, 100%);
 }
 
 .progress {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-size: 11px;
     margin-bottom: 12px;
     color: #eee;
@@ -490,42 +424,44 @@ button {
     inset: 0;
     width: 34%;
     background: #fff;
+    transition: width .3s ease;
 }
 
 .hero-cards {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     overflow-x: auto;
-    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, .3) rgba(255, 255, 255, .05);
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    padding: 2px 2px 4px 2px;
+    cursor: grab;
+    user-select: none;
 }
 
 .hero-cards::-webkit-scrollbar {
-    height: 6px;
+    display: none; /* Chrome, Safari, Edge */
 }
 
-.hero-cards::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, .05);
-    border-radius: 4px;
-}
-
-.hero-cards::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, .3);
-    border-radius: 4px;
+.hero-cards.is-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
 }
 
 .hcard {
-    flex: 0 0 270px;
+    flex: 0 0 248px;
+    min-width: 0;
+    scroll-snap-align: start;
     display: flex;
     gap: 12px;
     align-items: center;
-    padding: 12px;
+    padding: 10px 12px;
     border-radius: 16px;
-    background: rgba(18, 17, 15, .55);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, .28);
+    background: rgba(18, 17, 15, .6);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, .25);
     position: relative;
     cursor: pointer;
     transition: border-color .25s, transform .25s;
@@ -536,22 +472,35 @@ button {
 }
 
 .hcard .ph {
-    width: 62px;
-    height: 62px;
+    width: 58px;
+    height: 58px;
     border-radius: 10px;
     flex: none;
+}
+
+.hcard-body,
+.hcard > div:last-child {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
 }
 
 .hcard h4 {
     font-size: 13px;
     font-weight: 600;
     line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .hcard p {
     font-size: 11px;
     color: #c9c8c2;
-    margin-top: 6px;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* маркиза */
@@ -755,20 +704,6 @@ button {
 .exp-arrows {
     display: flex;
     gap: 10px;
-}
-
-.seeall {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, .3);
-    padding-bottom: 4px;
-}
-
-.seeall:hover {
-    border-color: #fff;
 }
 
 /* WORKS (PORTFOLIO) */
@@ -1323,21 +1258,18 @@ button {
 }
 
 /* MEDIA QUERIES */
+@media(max-width:1200px) {
+    .page {
+        padding: 20px 24px 48px;
+    }
+}
+
 @media(max-width:1024px) {
     .works-grid {
         column-count: 2;
     }
     .blog-grid {
         grid-template-columns: 1fr 1fr;
-    }
-    .site-scrollbar {
-        display: none;
-    }
-    body {
-        scrollbar-width: auto;
-    }
-    body::-webkit-scrollbar {
-        display: block;
     }
 }
 
@@ -1365,7 +1297,7 @@ button {
 
     .hero-title {
         font-size: 32px;
-        padding: 0 20px;
+        padding: 0 10px;
         margin-top: 40px;
     }
 

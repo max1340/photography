@@ -32,24 +32,24 @@ const UI_DICT = {
         talkBtn: 'ДАВАЙТЕ ПОГОВОРИМ',
         instaBtn: 'НАПИСАТЬ В INSTAGRAM',
         modalTitle: 'Давайте обсудим',
-        modalDesc: 'Я всегда открыт для новых проектов, съемок и коллабораций. Напишите мне напрямую.',
+        modalDesc: 'Я всегда открыт для новых проектов, съемок и творческих коллабораций. Напишите мне напрямую.',
         fullPortfolio: 'Всё портфолио'
     },
     en: {
         navHome: 'Home', navWorks: 'Portfolio', navBlog: 'Blog', navContact: 'Contact',
         sec1: '(01)<b>About Me</b>',
-        sec2: '(02)<b>My Expertise</b>',
-        sec3: '(03)<b>My Works</b>',
-        sec6: '(06)<b>Blog</b>',
+        sec2: '(02)<b>Expertise</b>',
+        sec3: '(03)<b>Selected Works</b>',
+        sec6: '(06)<b>Journal & Stories</b>',
         sec7: '(07) Contact',
         seeAll: 'View all',
         seeAllBtn: 'VIEW ALL',
-        seeMoreBtn: 'LEARN MORE',
+        seeMoreBtn: 'DISCOVER MORE',
         talkBtn: 'LET\'S TALK',
-        instaBtn: 'DM ON INSTAGRAM',
-        modalTitle: 'Let\'s Discuss',
-        modalDesc: 'I am always open for new projects, shoots, and collaborations. Send me a direct message.',
-        fullPortfolio: 'Full Portfolio'
+        instaBtn: 'MESSAGE ON INSTAGRAM',
+        modalTitle: 'Let\'s Connect',
+        modalDesc: 'I am always open to new projects, expeditions, and creative collaborations. Send me a direct message.',
+        fullPortfolio: 'Complete Portfolio'
     }
 };
 
@@ -121,6 +121,10 @@ dbGetObj('settings/main_' + currentLang).then(settings => {
 /* ---------- HERO СЛАЙДЕР ---------- */
 let currentHeroSlideId = null;
 let heroSlides = [];
+let isHeroDragging = false;
+let heroDragStartX = 0;
+let heroDragStartScroll = 0;
+let heroHasMoved = false;
 
 function updateHeroProgress() {
     const cards = $$('#heroCards .hcard');
@@ -131,35 +135,49 @@ function updateHeroProgress() {
     
     const p = $('.hero-side .progress');
     if (p) {
-        const spans = p.querySelectorAll('span');
-        if (spans.length >= 2) {
-            spans[0].textContent = String(currentIndex).padStart(2, '0');
-            spans[1].textContent = String(total).padStart(2, '0');
-        }
+        const pCur = p.querySelector('.p-cur') || p.querySelectorAll('span')[0];
+        const pTotal = p.querySelector('.p-total') || p.querySelectorAll('span')[1];
+        if (pCur) pCur.textContent = String(currentIndex).padStart(2, '0');
+        if (pTotal) pTotal.textContent = String(total).padStart(2, '0');
         const bar = p.querySelector('.bar i');
         if (bar) bar.style.width = (currentIndex / total * 100) + '%';
     }
 }
 
-function activateHeroSlide(slide) {
+function scrollCardIntoView(card) {
+    const heroCards = $('#heroCards');
+    if (!card || !heroCards) return;
+    const cardLeft = card.offsetLeft;
+    const cardWidth = card.offsetWidth;
+    const containerWidth = heroCards.clientWidth;
+    const targetScroll = cardLeft - (containerWidth - cardWidth) / 2;
+    heroCards.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+}
+
+function activateHeroSlide(slide, autoScroll = true) {
+    if (!slide) return;
     currentHeroSlideId = slide.id;
     const img = $('#heroImg');
-    img.style.transition = 'opacity 0.25s ease-in-out';
-    if (img.src !== slide.url && !img.src.endsWith(slide.url)) {
-        img.style.opacity = 0;
-        setTimeout(() => {
+    if (img) {
+        img.style.transition = 'opacity 0.25s ease-in-out';
+        if (img.src !== slide.url && !img.src.endsWith(slide.url)) {
+            img.style.opacity = 0;
+            setTimeout(() => {
+                img.src = slide.url;
+                img.style.opacity = 1;
+            }, 250);
+        } else {
             img.src = slide.url;
-            img.style.opacity = 1;
-        }, 250);
-    } else {
-        img.src = slide.url;
+        }
     }
     
     const h = $('#heroTitle');
-    h.textContent = slide.title;
-    const words = h.textContent.trim().split(/\s+/); 
-    h.innerHTML = words.map((w, i) => '<span class="hw" style="transition-delay:' + (i * 70) + 'ms"><i>' + w + '</i></span>').join(' ');
-    requestAnimationFrame(() => requestAnimationFrame(() => $$('#heroTitle .hw').forEach(s => s.classList.add('on'))));
+    if (h) {
+        h.textContent = slide.title;
+        const words = h.textContent.trim().split(/\s+/); 
+        h.innerHTML = words.map((w, i) => '<span class="hw" style="transition-delay:' + (i * 70) + 'ms"><i>' + w + '</i></span>').join(' ');
+        requestAnimationFrame(() => requestAnimationFrame(() => $$('#heroTitle .hw').forEach(s => s.classList.add('on'))));
+    }
     
     const heroTags = $('#heroTags');
     if (heroTags) {
@@ -167,27 +185,39 @@ function activateHeroSlide(slide) {
         heroTags.innerHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
     }
 
-    $$('#heroCards .hcard').forEach(c => c.style.borderColor = c.dataset.id === slide.id ? '#fff' : 'rgba(255, 255, 255, .28)');
+    const cards = $$('#heroCards .hcard');
+    cards.forEach(c => c.style.borderColor = c.dataset.id === slide.id ? '#fff' : 'rgba(255, 255, 255, .25)');
+    
+    const activeCard = cards.find(c => c.dataset.id === slide.id);
+    if (autoScroll && activeCard) {
+        scrollCardIntoView(activeCard);
+    }
     updateHeroProgress();
 }
+
+
 
 function renderHeroCard(slide) {
     const el = document.createElement('div'); 
     el.className = 'hcard dyn'; 
     el.dataset.id = slide.id;
     el.innerHTML = `
-        <div class="ph ph-sm"><img src="${slide.url}" alt=""></div>
-        <div><h4 class="htitle">${slide.title}</h4><p class="hsub">${slide.sub || ''}</p></div>
+        <div class="ph ph-sm"><img src="${slide.url}" alt="${slide.title || ''}"></div>
+        <div class="hcard-body"><h4 class="htitle">${slide.title}</h4><p class="hsub">${slide.sub || ''}</p></div>
     `;
-    el.addEventListener('click', () => activateHeroSlide(slide));
+    el.addEventListener('click', () => {
+        if (heroHasMoved) return;
+        activateHeroSlide(slide, true);
+    });
     $('#heroCards').appendChild(el);
     updateHeroProgress();
 }
 
 dbAll('hero_slides_' + currentLang).then(list => {
     if (list.length > 0) {
+        heroSlides = list;
         list.forEach(s => renderHeroCard(s));
-        activateHeroSlide(list[0]);
+        activateHeroSlide(list[0], false);
     }
 });
 
@@ -329,13 +359,15 @@ let currentCategory = 'Все';
 let worksPageLimit = 4; // Показываем ровно 4 работы на главной
 let worksCurrentCount = 0;
 
+const PIN_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px; opacity:0.85;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+
 function createWorkCard(it) {
     const el = document.createElement('article');
     el.className = 'wcard';
     el.dataset.id = it.id;
     const finalImg = it.url || '';
     const descText = it.sub || '';
-    const placeText = it.place ? `<span style="font-weight:600; opacity:0.95;">📍 ${it.place}</span>` : '';
+    const placeText = it.place ? `<span style="font-weight:600; opacity:0.95; display:inline-flex; align-items:center;">${PIN_SVG}${it.place}</span>` : '';
     const fullSub = [placeText, descText].filter(Boolean).join(' — ');
     el.innerHTML = `
         <div class="ph"><img src="${finalImg}" alt="${it.title || ''}" loading="lazy"></div>
@@ -527,135 +559,3 @@ $('#pvPrev').onclick = () => pvTrack.scrollBy({ left: -pvTrack.clientWidth, beha
 /* ---------- контакты ---------- */
 $$('.js-contact').forEach(b => b.addEventListener('click', () => openM($('#contactModal'))));
 
-/* ---------- КАСТОМНЫЙ СКРОЛЛБАР ---------- */
-const ssTrack = $('#ssTrack');
-const ssThumb = $('#ssThumb');
-const ssLabels = $('#ssLabels');
-const labelsCache = {};
-
-const scrollSections = [
-    { id: 'top', name: 'Главная' },
-    { id: 'works', name: 'Портфолио' },
-    { id: 'blog', name: 'Блог' },
-    { id: 'contacts', name: 'Контакты' }
-];
-
-function updateScrollbar() {
-    if (!ssTrack || !ssThumb) return;
-
-    if (ssLabels && Object.keys(labelsCache).length === 0) {
-        scrollSections.forEach(sec => {
-            const span = document.createElement('span');
-            span.className = 'ss-label';
-            span.textContent = sec.name;
-            ssLabels.appendChild(span);
-            labelsCache[sec.id] = span;
-        });
-    }
-
-    const scrollTop = window.scrollY;
-    const docHeight = document.body.scrollHeight;
-    const winHeight = window.innerHeight;
-    const maxScroll = docHeight - winHeight;
-    const padding = 4;
-    
-    if (maxScroll <= 0) {
-        ssThumb.style.height = `calc(100% - ${padding * 2}px)`;
-        ssThumb.style.top = `${padding}px`;
-        return;
-    }
-    
-    const trackHeight = ssTrack.clientHeight - (padding * 2);
-    const thumbHeight = Math.max(44, (winHeight / docHeight) * trackHeight);
-    ssThumb.style.height = thumbHeight + 'px';
-    
-    const scrollPercent = scrollTop / maxScroll;
-    const maxTop = trackHeight - thumbHeight;
-    ssThumb.style.top = (padding + scrollPercent * maxTop) + 'px';
-
-    if (ssLabels) {
-        let activeId = scrollSections[0].id;
-        scrollSections.forEach(sec => {
-            const el = document.getElementById(sec.id);
-            if (el) {
-                const rect = el.getBoundingClientRect();
-                if (rect.top <= winHeight / 2) {
-                    activeId = sec.id;
-                }
-            }
-        });
-
-        scrollSections.forEach(sec => {
-            const el = document.getElementById(sec.id);
-            const span = labelsCache[sec.id];
-            if (el && span) {
-                const absoluteTop = el.getBoundingClientRect().top + window.scrollY;
-                const targetScroll = Math.max(0, Math.min(absoluteTop, maxScroll));
-                const thumbTop = padding + (maxScroll > 0 ? (targetScroll / maxScroll) * maxTop : 0);
-                const centerPos = thumbTop + thumbHeight / 2;
-                span.style.top = centerPos + 'px';
-                
-                if (sec.id === activeId) {
-                    span.classList.add('active');
-                } else {
-                    span.classList.remove('active');
-                }
-            }
-        });
-    }
-}
-
-if (ssTrack && ssThumb) {
-    window.addEventListener('scroll', updateScrollbar, { passive: true });
-    window.addEventListener('resize', updateScrollbar);
-    document.addEventListener('DOMContentLoaded', updateScrollbar);
-    setTimeout(updateScrollbar, 500);
-
-    ssTrack.addEventListener('pointerdown', e => {
-        if (e.target === ssThumb) return; 
-        const padding = 4;
-        const trackHeight = ssTrack.clientHeight - (padding * 2);
-        const clickY = e.clientY - ssTrack.getBoundingClientRect().top - padding;
-        const scrollPercent = clickY / trackHeight;
-        const docHeight = document.body.scrollHeight;
-        const winHeight = window.innerHeight;
-        const maxScroll = docHeight - winHeight;
-        window.scrollTo({ top: scrollPercent * maxScroll, behavior: 'smooth' });
-    });
-
-    let isDraggingThumb = false;
-    let startY = 0;
-    let startScrollTop = 0;
-
-    ssThumb.addEventListener('pointerdown', e => {
-        isDraggingThumb = true;
-        ssTrack.classList.add('is-dragging');
-        startY = e.clientY;
-        startScrollTop = window.scrollY;
-        document.body.style.userSelect = 'none';
-        ssThumb.setPointerCapture(e.pointerId);
-    });
-
-    ssThumb.addEventListener('pointermove', e => {
-        if (!isDraggingThumb) return;
-        const deltaY = e.clientY - startY;
-        const padding = 4;
-        const trackHeight = ssTrack.clientHeight - (padding * 2);
-        const docHeight = document.body.scrollHeight;
-        const winHeight = window.innerHeight;
-        const maxScroll = docHeight - winHeight;
-        
-        const thumbHeight = parseFloat(ssThumb.style.height);
-        const maxTop = trackHeight - thumbHeight;
-        const scrollDelta = (deltaY / maxTop) * maxScroll;
-        
-        window.scrollTo(0, startScrollTop + scrollDelta);
-    });
-
-    ssThumb.addEventListener('pointerup', e => {
-        isDraggingThumb = false;
-        ssTrack.classList.remove('is-dragging');
-        document.body.style.userSelect = '';
-        ssThumb.releasePointerCapture(e.pointerId);
-    });
-}
