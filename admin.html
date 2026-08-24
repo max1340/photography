@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления - M.Photo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/manrope@latest/index.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Форма входа -->
+    <div id="loginOverlay" class="login-overlay active">
+        <div class="login-box">
+            <h2>Вход в панель управления</h2>
+            <form id="adminForm">
+                <input type="email" id="adminEmail" class="inp" placeholder="Email" required>
+                <input type="password" id="adminPassword" class="inp" placeholder="Пароль" required>
+                <button type="submit" class="btn">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Дашборд -->
+    <div id="dashboard" class="dashboard" style="display: none;">
+        <aside class="sidebar">
+            <div class="logo">M.Photo <span>Admin</span></div>
+            <nav class="admin-nav">
+                <a href="#hero" class="active" data-tab="hero">Слайды (Главная)</a>
+                <a href="#works" data-tab="works">Портфолио</a>
+                <a href="#blog" data-tab="blog">Блог</a>
+                <a href="#settings" data-tab="settings">Тексты сайта</a>
+            </nav>
+            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                <a href="https://console.firebase.google.com/u/0/project/pc-building-b3d74/database/usage/current-billing/bandwidth" target="_blank" style="color: var(--gray); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--gray)'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    Firebase Console
+                </a>
+                <a href="https://console.cloudinary.com/app/c-fcc005590affb9d109f59b765a5b3d/home/dashboard" target="_blank" style="color: var(--gray); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--gray)'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+                    Cloudinary Dashboard
+                </a>
+            </div>
+            <button id="logoutBtn" class="btn btn-outline">Выйти</button>
+        </aside>
+        
+        <main class="main-content">
+            <div id="toast" class="toast">Успешно!</div>
+            
+            <!-- Вкладка Слайды -->
+            <section id="tab-hero" class="tab-content active">
+                <div class="header-row">
+                    <h2>Слайды (Главная)</h2>
+                    <button id="addHeroBtn" class="btn">+ Добавить слайд</button>
+                </div>
+                <div class="grid" id="heroGrid"></div>
+            </section>
+
+            <!-- Вкладка Портфолио -->
+            <section id="tab-works" class="tab-content">
+                <div class="header-row">
+                    <h2>Портфолио</h2>
+                    <button id="addWorkBtn" class="btn">+ Добавить работу</button>
+                </div>
+                <div class="grid" id="worksGrid"></div>
+            </section>
+
+            <!-- Вкладка Блог -->
+            <section id="tab-blog" class="tab-content">
+                <div class="header-row">
+                    <h2>Записи в блоге</h2>
+                    <button id="addBlogBtn" class="btn">+ Добавить пост</button>
+                </div>
+                <div class="grid" id="blogGrid"></div>
+            </section>
+            
+            <!-- Вкладка Тексты сайта -->
+            <section id="tab-settings" class="tab-content">
+                <div class="header-row">
+                    <h2>Тексты сайта</h2>
+                    <button id="saveSettingsBtn" class="btn">Сохранить всё</button>
+                </div>
+                <form id="settingsForm" style="display:flex; flex-direction:column; gap:20px; max-width:600px; padding-bottom: 40px;">
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Бегущая строка (слова через запятую)</label>
+                        <input type="text" class="inp" id="s_marqueeText" value="ПЕЙЗАЖИ, ТРЭВЕЛ, ГОРЫ, ОКЕАН, АРХИТЕКТУРА, РАССВЕТЫ">
+                    </div>
+                    
+                    <h3 style="margin-top:20px; color:var(--text);">Обо мне</h3>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Описание (абзац слева)</label>
+                        <textarea class="inp" id="s_aboutText" rows="3">Я стремлюсь заключить в кадр самые драгоценные мгновения природы и дорог, сплетая гобелен искусства вне времени — с щепоткой волшебства и честного света.</textarea>
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Главная мысль (используйте * для выделения, например *Фотография*)</label>
+                        <textarea class="inp" id="s_aboutQuote" rows="3">*Фотография* — это глубокое стремление *ловить самые ценные моменты* жизни и превращать их в искусство с щепоткой магии</textarea>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 1 (цифра)</label><input type="text" class="inp" id="s_stat1Num" value="9"></div>
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 1 (текст)</label><input type="text" class="inp" id="s_stat1Text" value="лет в дороге"></div>
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 2 (цифра)</label><input type="text" class="inp" id="s_stat2Num" value="24"></div>
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 2 (текст)</label><input type="text" class="inp" id="s_stat2Text" value="страны снято"></div>
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 3 (цифра)</label><input type="text" class="inp" id="s_stat3Num" value="140"></div>
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 3 (текст)</label><input type="text" class="inp" id="s_stat3Text" value="съёмок"></div>
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 4 (цифра)</label><input type="text" class="inp" id="s_stat4Num" value="8"></div>
+                        <div class="settings-group"><label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Стат 4 (текст)</label><input type="text" class="inp" id="s_stat4Text" value="наград"></div>
+                    </div>
+
+                    <h3 style="margin-top:20px; color:var(--text);">Заголовки секций (с *выделением*)</h3>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Услуги</label>
+                        <textarea class="inp" id="s_expTitle" rows="2">Когда пойманные моменты превращают мечты в красивую реальность</textarea>
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Портфолио (Заголовок)</label>
+                        <textarea class="inp" id="s_worksTitle" rows="2">*Исследуйте* искусство и точность *моего портфолио* вечной фотографии</textarea>
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Портфолио (Описание)</label>
+                        <textarea class="inp" id="s_worksDesc" rows="2">Отправьтесь в визуальное путешествие по избранным кадрам. Клик по карточке откроет галерею с деталями съёмки.</textarea>
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Блог (Заголовок)</label>
+                        <textarea class="inp" id="s_blogTitle" rows="2">*Истории* с маршрутов: свет, дороги и люди *в кадре и за ним*</textarea>
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Блог (Описание)</label>
+                        <textarea class="inp" id="s_blogDesc" rows="2">Заметки о том, как я снимаю рассветы, выбираю маршруты и готовлю снаряжение.</textarea>
+                    </div>
+
+                    <h3 style="margin-top:20px; color:var(--text);">Контакты</h3>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Заголовок (до кнопки)</label>
+                        <input type="text" class="inp" id="s_contactTitle1" value="Давайте *обсудим* ваше видение">
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Заголовок (после кнопки)</label>
+                        <input type="text" class="inp" id="s_contactTitle2" value="вместе">
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Локация</label>
+                        <input type="text" class="inp" id="s_contactLoc" value="Israel">
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Instagram (@...)</label>
+                        <input type="text" class="inp" id="s_contactInsta" value="@max.photography_134">
+                    </div>
+                    <div class="settings-group">
+                        <label style="color:var(--gray);font-size:12px;margin-bottom:6px;display:block">Email</label>
+                        <input type="email" class="inp" id="s_contactEmail" value="hello@kadr.photo">
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- Общая модалка для создания/редактирования (универсальная) -->
+    <div class="modal" id="editModal">
+        <div class="modal-box">
+            <h3 id="modalTitle">Редактирование</h3>
+            <button class="modal-close" data-close>&times;</button>
+            <form id="editForm">
+                <input type="hidden" id="editCollection">
+                <input type="hidden" id="editId">
+                <div class="field" id="editFieldImage">
+                    <label>Фотография (можно выбрать несколько для блога)</label>
+                    <div class="ph-upload" id="editImageBtn">
+                        <div id="uploadPreviewContainer" class="upload-previews"></div>
+                        <span id="uploadText">Загрузить фото</span>
+                    </div>
+                    <input type="file" id="editFileInput" accept="image/*" style="display:none">
+                </div>
+                <input type="text" id="editField1" class="inp" placeholder="Заголовок" required>
+                <input type="text" id="editField2" class="inp" placeholder="Подзаголовок / Описание">
+                <input type="text" id="editFieldDate" class="inp" placeholder="Дата (напр. 15 АВГУСТА 2026)" style="display:none">
+                <input type="text" id="editFieldPlace" class="inp" placeholder="Местоположение / Локация (напр. Вена, Австрия)">
+                <input type="text" id="editFieldTags" class="inp" placeholder="Теги (через запятую: Пейзаж, Горы)">
+                <textarea id="editField3" class="inp" placeholder="Текст (только для блога)" rows="5" style="display:none;"></textarea>
+                <button class="btn" style="width:100%">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js?v=8"></script>
+</body>
+</html>

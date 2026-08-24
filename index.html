@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.Photo — пейзажная и тревел-фотография</title>
+    <!--
+============================================================
+КАК САЙТ «ОЖИЛ» — план реализации (всё работает в этом файле)
+============================================================
+1. КНОПКИ: все CTA ведут куда нужно — «Обсудить проект» и
+   «Давайте поговорить» открывают модалку с формой заявки
+   (с тостом-подтверждением); «Подробнее» и клик по карточке
+   работы открывают ЛАЙТБОКС-галерею (стрелки, клавиши ←/→, Esc).
+2. КАРУСЕЛЬ экспертизы: стрелки + свайп + АВТОПРОКРУТКА (пауза
+   при наведении), подпись обновляется по текущему слайду.
+3. АНИМАЦИИ: пословное появление заголовка hero, параллакс
+   фона при скролле, бегущая строка-маркиза, счётчики
+   (9 лет / 24 страны…), reveal-блоки при прокрутке,
+   hover-зум фото в карточках, scrollspy в навигации.
+4. ЗАМЕНА ФОТО: «✎ Редактировать фото» → пунктирная рамка →
+   «Заменить фото» → файл сжимается (canvas, max 1920px) и
+   хранится в IndexedDB — переживает перезагрузку страницы.
+5. ДОБАВЛЕНИЕ ФОТО: в режиме правки в портфолио и блоге
+   появляются плитки «+ Добавить» — карточка создаётся с
+   названием/тегами и тоже сохраняется в IndexedDB;
+   крестик «×» удаляет добавленные карточки.
+6. БЛОГ: секция (06) с постами — клик открывает статью в
+   модалке; новые посты (текст + фото) добавляются и хранятся
+   локально в браузере.
+============================================================
+-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/manrope@latest/index.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- КАСТОМНЫЙ СКРОЛЛБАР -->
+    <div class="site-scrollbar" id="siteScrollbar">
+        <div class="ss-track" id="ssTrack">
+            <div class="ss-labels" id="ssLabels"></div>
+            <i id="ssThumb"></i>
+        </div>
+    </div>
+
+    <div class="page">
+
+        <!-- HERO -->
+        <header class="hero" id="top">
+            <div class="ph" data-photo="hero">
+                <img id="heroImg"
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    alt="Пейзаж с домом в поле">
+                <button class="ph-btn" type="button">Заменить фото</button>
+            </div>
+            <div class="hero-inner">
+                <nav class="nav">
+                    <a class="logo" href="#top"><span class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="currentColor">
+                                <circle cx="8.5" cy="8.5" r="3.4" />
+                                <circle cx="15.5" cy="8.5" r="3.4" />
+                                <circle cx="8.5" cy="15.5" r="3.4" />
+                                <circle cx="15.5" cy="15.5" r="3.4" />
+                            </svg></span>M.Photo</a>
+                    <div class="pills" id="pills">
+                        <a href="#top" class="active">Главная</a>
+                        <a href="#works">Портфолио</a>
+                        <a href="#blog">Блог</a>
+                        <a href="#contacts">Контакты</a>
+                    </div>
+                </nav>
+                <h1 class="hero-title" id="heroTitle">Запечатлеваю красоту мгновений сквозь объектив и выдержку</h1>
+                <div class="hero-foot">
+                    <div class="tags" id="heroTags"></div>
+                    <div class="hero-side">
+                        <div class="progress"><span>01</span>
+                            <div class="bar"><i></i></div><span>03</span>
+                        </div>
+                        <div class="hero-cards" id="heroCards">
+                            <!-- Cards are populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- маркиза -->
+        <div class="marquee">
+            <div class="mtrack" id="mtrack" data-content-key="marqueeText">
+                <span>ПЕЙЗАЖИ ✦</span><span>ТРЭВЕЛ ✦</span><span>ГОРЫ ✦</span><span>ОКЕАН ✦</span><span>АРХИТЕКТУРА
+                    ✦</span><span>РАССВЕТЫ ✦</span>
+            </div>
+        </div>
+
+        <!-- ABOUT -->
+        <section class="about reveal" id="about">
+            <div class="about-left">
+                <div class="label">(01)<b>Обо мне</b></div>
+                <p data-content-key="aboutText">Я стремлюсь заключить в кадр самые драгоценные мгновения природы и дорог, сплетая гобелен искусства
+                    вне времени — с щепоткой волшебства и честного света.</p>
+            </div>
+            <div class="about-right">
+                <h2 data-content-key="aboutQuote"><span class="w">Фотография</span> — это глубокое стремление <span class="w">ловить самые ценные
+                        моменты</span> жизни и превращать их в искусство с щепоткой магии</h2>
+                <div class="btn-row">
+                    <button class="btn-outline" onclick="location.href='#expertise'">УЗНАТЬ БОЛЬШЕ</button>
+                    <span class="arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round">
+                            <path d="M7 17L17 7M9 7h8v8" />
+                        </svg></span>
+                </div>
+            </div>
+        </section>
+        <div class="stats reveal">
+            <div><b data-count="9" data-content-key="stat1Num">0</b><span data-content-key="stat1Text">лет в дороге</span></div>
+            <div><b data-count="24" data-content-key="stat2Num">0</b><span data-content-key="stat2Text">страны снято</span></div>
+            <div><b data-count="140" data-suffix="+" data-content-key="stat3Num">0</b><span data-content-key="stat3Text">съёмок</span></div>
+            <div><b data-count="8" data-content-key="stat4Num">0</b><span data-content-key="stat4Text">наград</span></div>
+        </div>
+
+        <!-- EXPERTISE -->
+        <section class="expertise reveal" id="expertise">
+            <div class="exp-top">
+                <div>
+                    <div class="label">(02)<b>Моя экспертиза</b></div>
+                    <h2 class="exp-title" data-content-key="expTitle">Когда пойманные моменты превращают мечты в красивую реальность</h2>
+                </div>
+                <div class="exp-cats" id="expCats"></div>
+            </div>
+            <div class="carousel" id="expTrack">
+                <!-- Slides populated by JS -->
+            </div>
+            <div class="exp-foot">
+                <div class="exp-cap" id="expCap">
+                    <h4 id="expCapT">Гранит и утренний туман</h4>
+                    <p id="expCapP">Йосемити, США</p>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:16px;align-items:flex-start">
+                    <div class="exp-arrows">
+                        <button class="arr ghost" id="expPrev" aria-label="Назад"><svg width="15" height="15"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                stroke-linecap="round">
+                                <path d="M15 6l-6 6 6 6" />
+                            </svg></button>
+                        <button class="arr" id="expNext" aria-label="Вперёд"><svg width="15" height="15"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                stroke-linecap="round">
+                                <path d="M9 6l6 6-6 6" />
+                            </svg></button>
+                    </div>
+                    <a class="seeall" href="#works">Смотреть все <svg width="26" height="10" viewBox="0 0 26 10"
+                            fill="none" stroke="currentColor" stroke-width="1.4">
+                            <path d="M0 5h24M20 1l4 4-4 4" />
+                        </svg></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- WORKS -->
+        <section id="works">
+            <div class="works-head reveal">
+                <div>
+                    <div class="label">(03)<b>Мои работы</b></div>
+                    <h2 data-content-key="worksTitle"><span class="w">Исследуйте</span> искусство и точность <span class="w">моего портфолио</span>
+                        вечной фотографии</h2>
+                </div>
+                <div class="right">
+                    <p data-content-key="worksDesc">Отправьтесь в визуальное путешествие по избранным кадрам. Клик по карточке откроет галерею с деталями съёмки.</p>
+                    <div class="btn-row" style="margin-top:0"><button class="btn-outline" id="viewAllWorksBtn">СМОТРЕТЬ ВСЕ</button><span class="arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8" /></svg></span></div>
+                </div>
+            </div>
+            <div class="works-grid reveal" id="worksGrid">
+                <!-- Works populated by JS -->
+            </div>
+            <div id="worksLoadTrigger" style="height: 4px; width: 100%; margin-top: 24px;"></div>
+        </section>
+
+
+
+        <!-- BLOG -->
+        <section id="blog">
+            <div class="blog-head reveal">
+                <div>
+                    <div class="label">(06)<b>Блог</b></div>
+                    <h2 data-content-key="blogTitle"><span class="w">Истории</span> с маршрутов: свет, дороги и люди <span class="w">в кадре и за
+                            ним</span></h2>
+                </div>
+                <div class="right">
+                    <p data-content-key="blogDesc">Заметки о том, как я снимаю рассветы, выбираю маршруты и готовлю снаряжение.</p>
+                </div>
+            </div>
+            <div class="blog-grid" id="blogGrid">
+                <!-- Blogs populated by JS -->
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <footer class="contact reveal" id="contacts">
+            <div class="contact-top">
+                <h2>(07) Контакты<br><span data-content-key="contactTitle1">Давайте <span class="w">обсудим</span> ваше видение</span>
+                    <span class="inline-cta"><button class="btn-white js-contact" style="padding:14px 22px">ДАВАЙТЕ
+                            ПОГОВОРИМ</button><span class="arr"><svg width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                                <path d="M7 17L17 7M9 7h8v8" />
+                            </svg></span></span>
+                    <span class="w" data-content-key="contactTitle2">вместе</span>
+                </h2>
+                <div class="addr">
+                    <span data-content-key="contactLoc">Israel</span><br>
+                    <a href="https://instagram.com/max.photography_134" target="_blank" id="contactInstaLink" style="color:var(--text);text-decoration:none;transition:opacity .2s" onmouseover="this.style.opacity=.7" onmouseout="this.style.opacity=1" data-content-key="contactInsta">@max.photography_134</a><br>
+                    <a href="mailto:hello@kadr.photo" style="color:var(--text);text-decoration:none;" data-content-key="contactEmail">hello@kadr.photo</a>
+                </div>
+            </div>
+            <div class="contact-foot">
+                <a class="logo" href="#top"><span class="logo-mark"><svg width="16" height="16" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <circle cx="8.5" cy="8.5" r="3.4" />
+                            <circle cx="15.5" cy="8.5" r="3.4" />
+                            <circle cx="8.5" cy="15.5" r="3.4" />
+                            <circle cx="15.5" cy="15.5" r="3.4" />
+                        </svg></span>M.Photo</a>
+                <div class="flinks"><a href="#about">Обо мне</a><a href="#works">Проекты</a><a
+                        href="#expertise">Услуги</a><a href="#blog">Блог</a></div>
+                <div class="copy">© M.Photo 2025. Все права защищены</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ЛАЙТБОКС -->
+    <div class="modal" id="lightbox">
+        <div class="mback" data-close></div>
+        <div class="mbox wide"><button class="mclose" data-close>✕</button>
+            <img class="mimg" id="lbImg" alt="">
+            <div class="lb-nav">
+                <div class="lb-cap">
+                    <h4 id="lbTitle"></h4>
+                    <p id="lbSub"></p>
+                    <div class="mtags" id="lbTags"></div>
+                </div>
+                <div class="exp-arrows">
+                    <button class="arr ghost" id="lbPrev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M15 6l-6 6 6 6" />
+                        </svg></button>
+                    <button class="arr" id="lbNext"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M9 6l6 6-6 6" />
+                        </svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- ПОЛНОЭКРАННАЯ ГАЛЕРЕЯ -->
+    <div class="modal" id="fullGalleryModal">
+        <div class="mback" data-close></div>
+        <div class="mbox gallery-box">
+            <button class="mclose" data-close style="position:fixed; top:20px; right:24px; z-index:100;">✕</button>
+            <h3 style="margin-bottom: 24px; font-size: 28px;">Всё портфолио</h3>
+            <div class="works-grid gallery-grid" id="fullGalleryGrid">
+                <!-- Works populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- КОНТАКТЫ (ИНСТАГРАМ) -->
+    <div class="modal" id="contactModal">
+        <div class="mback" data-close></div>
+        <div class="mbox" style="width:min(400px,94vw); text-align: center; padding: 40px 32px;"><button class="mclose" data-close>✕</button>
+            <h3 style="margin-bottom: 12px; font-size: 24px;">Давайте обсудим</h3>
+            <p style="font-size:14px;color:var(--gray);margin:0 0 32px">Я всегда открыт для новых проектов, съемок и коллабораций. Напишите мне напрямую.</p>
+            
+            <a href="https://instagram.com/max.photography_134" target="_blank" id="modalInstaLink" class="btn-white" style="display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:16px; text-decoration:none; font-size:15px; font-weight:700;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+                НАПИСАТЬ В INSTAGRAM
+            </a>
+        </div>
+    </div>
+
+    <!-- ЧТЕНИЕ ПОСТА -->
+    <div class="modal" id="postView">
+        <div class="mback" data-close></div>
+        <div class="mbox article-box"><button class="mclose" data-close>✕</button>
+            <div class="blog-carousel" id="pvCarousel">
+                <div class="bc-track" id="pvTrack"></div>
+            </div>
+            <div class="exp-arrows" id="pvArrows" style="display:none; justify-content:center; margin-bottom: 20px;">
+                <button class="arr ghost" id="pvPrev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                        <path d="M15 6l-6 6 6 6" />
+                    </svg></button>
+                <button class="arr" id="pvNext"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                        <path d="M9 6l6 6-6 6" />
+                    </svg></button>
+            </div>
+            <div class="article-body">
+                <span class="bdate" id="pvDate"></span>
+                <h2 id="pvTitle"></h2>
+                <div class="acontent" id="pvContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Остался только toast и fileInput (если нужен публичный загрузчик, но он не нужен) -->
+    <input type="file" id="fileInput" accept="image/*" hidden>
+    <div id="toast"></div>
+
+    <script type="module" src="main.js?v=7"></script>
+</body>
+
+</html>
+
