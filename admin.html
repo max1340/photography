@@ -24,11 +24,15 @@
     <div id="dashboard" class="dashboard" style="display: none;">
         <aside class="sidebar">
             <div class="logo">M.Photo <span>Admin</span></div>
+            <div class="admin-lang" id="adminLangSwitch">
+                <span data-lang="ru" class="active">Русская версия (RU)</span>
+                <span data-lang="en">Английская версия (EN)</span>
+            </div>
             <nav class="admin-nav">
-                <a href="#hero" class="active" data-tab="hero">Слайды (Главная)</a>
-                <a href="#works" data-tab="works">Портфолио</a>
-                <a href="#blog" data-tab="blog">Блог</a>
-                <a href="#settings" data-tab="settings">Тексты сайта</a>
+                <a href="#hero" class="active" data-tab="hero">Слайды / Slides</a>
+                <a href="#works" data-tab="works">Портфолио / Works</a>
+                <a href="#blog" data-tab="blog">Блог / Blog</a>
+                <a href="#settings" data-tab="settings">Тексты / Texts</a>
             </nav>
             <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                 <a href="https://console.firebase.google.com/u/0/project/pc-building-b3d74/database/usage/current-billing/bandwidth" target="_blank" style="color: var(--gray); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--gray)'">

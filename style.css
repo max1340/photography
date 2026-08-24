@@ -328,10 +328,82 @@ button {
     background: rgba(255, 255, 255, .2);
 }
 
+.lang-switch {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray);
+    background: rgba(255, 255, 255, .14);
+    backdrop-filter: blur(14px);
+    border-radius: 999px;
+    padding: 6px 14px;
+}
+
+.lang-switch span {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.lang-switch span.active, .lang-switch span:hover {
+    color: #fff;
+}
+
+.pills a.active {
+    background: rgba(255, 255, 255, .2);
+}
+
 .nav-cta {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.burger {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #fff;
+    z-index: 101;
+    position: relative;
+    padding: 4px;
+}
+
+.mobile-menu {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 17, 15, 0.95);
+    backdrop-filter: blur(15px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s;
+}
+
+.mobile-menu.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mm-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    text-align: center;
+}
+
+.mm-link {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    transition: 0.2s;
+}
+.mm-link:hover {
+    color: var(--gray);
 }
 
 .hero-title {
@@ -1258,6 +1330,15 @@ button {
     .blog-grid {
         grid-template-columns: 1fr 1fr;
     }
+    .site-scrollbar {
+        display: none;
+    }
+    body {
+        scrollbar-width: auto;
+    }
+    body::-webkit-scrollbar {
+        display: block;
+    }
 }
 
 @media(max-width:860px) {
@@ -1274,8 +1355,18 @@ button {
         display: none;
     }
 
+    .burger {
+        display: block;
+    }
+
     .hero {
-        min-height: 620px;
+        min-height: 520px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+        padding: 0 20px;
+        margin-top: 40px;
     }
 
     .about,
@@ -1283,6 +1374,19 @@ button {
     .blog-head {
         grid-template-columns: 1fr;
         gap: 30px;
+    }
+
+    .about-right h2 {
+        font-size: 28px;
+    }
+
+    .works-head h2,
+    .blog-head h2 {
+        font-size: 28px;
+    }
+
+    .contact-top h2 {
+        font-size: 34px !important;
     }
 
     .about-left p {
@@ -1315,7 +1419,9 @@ button {
     }
 
     .stats {
-        gap: 36px;
+        gap: 24px;
+        grid-template-columns: 1fr 1fr;
+        display: grid;
     }
 }
 

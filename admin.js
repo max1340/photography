@@ -4,6 +4,25 @@ const $$ = s => [...document.querySelectorAll(s)];
 import { auth, dbPut, dbAll, dbDel, dbGetObj, dbSetObj } from './firebase.js?v=2';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
+let currentAdminLang = localStorage.getItem('admin_lang') || 'ru';
+const updateAdminLangUI = () => {
+    $$('#adminLangSwitch span').forEach(s => s.classList.toggle('active', s.dataset.lang === currentAdminLang));
+};
+updateAdminLangUI();
+$$('#adminLangSwitch span').forEach(s => {
+    s.onclick = () => {
+        if (s.dataset.lang !== currentAdminLang) {
+            currentAdminLang = s.dataset.lang;
+            localStorage.setItem('admin_lang', currentAdminLang);
+            updateAdminLangUI();
+            if ($('#dashboard').style.display === 'flex') {
+                loadAllData();
+                loadSettings();
+            }
+        }
+    };
+});
+
 // Утилиты
 const toast = (msg) => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600); };
 const openM = m => { m.classList.add('open'); };
@@ -235,7 +254,7 @@ $('#editForm').onsubmit = async (e) => {
         const sub = $('#editField2').value;
         const tags = $('#editFieldTags').value.split(',').map(s=>s.trim()).filter(Boolean);
         data = { id, title, sub, tags, url: finalUrl };
-        await dbPut('hero_slides', id, data);
+        await dbPut('hero_slides_' + currentAdminLang, id, data);
     } else if (currentMode === 'works') {
         const title = $('#editField1').value;
         const sub = $('#editField2').value;
@@ -245,18 +264,17 @@ $('#editForm').onsubmit = async (e) => {
         
         if (editId) {
             data = { id: editId, title, sub, place, tags, url: finalUrl };
-            await dbPut('works', editId, data);
+            await dbPut('works_' + currentAdminLang, editId, data);
         } else {
             for (const url of uploadUrls) {
                 const newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-                data = { id: newId, title, sub, place, tags, url };
-                await dbPut('works', newId, data);
+                data = { id: newId, title, sub, place, tags, url: url };
+                await dbPut('works_' + currentAdminLang, newId, data);
             }
         }
     } else {
         const excerpt = $('#editField2').value || ($('#editField3').value.substring(0, 100) + '...');
-        const inputDate = $('#editFieldDate').value;
-        const date = inputDate || new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        const date = $('#editFieldDate').value;
         data = { 
             id, 
             date, 
@@ -266,7 +284,7 @@ $('#editForm').onsubmit = async (e) => {
             images: uploadUrls,
             content: $('#editField3').value 
         };
-        await dbPut('posts', id, data);
+        await dbPut('posts_' + currentAdminLang, id, data);
     }
 
     closeM($('#editModal'));
@@ -294,7 +312,7 @@ function createCard(item, mode) {
     el.querySelector('.edit-btn').onclick = () => openEdit(item, mode);
     el.querySelector('.del-btn').onclick = async () => {
         if (confirm('Точно удалить?')) {
-            const collection = mode === 'hero' ? 'hero_slides' : mode;
+            const collection = mode === 'hero' ? 'hero_slides_' + currentAdminLang : mode === 'works' ? 'works_' + currentAdminLang : 'posts_' + currentAdminLang;
             await dbDel(collection, item.id);
             el.remove();
             toast('Удалено');
@@ -308,16 +326,16 @@ async function loadAllData() {
     $('#worksGrid').innerHTML = '';
     $('#blogGrid').innerHTML = '';
 
-    const hero = await dbAll('hero_slides');
+    const hero = await dbAll('hero_slides_' + currentAdminLang);
     hero.forEach(h => $('#heroGrid').appendChild(createCard(h, 'hero')));
 
-    const works = await dbAll('works');
+    const works = await dbAll('works_' + currentAdminLang);
     works.forEach(w => $('#worksGrid').appendChild(createCard(w, 'works')));
 
-    const posts = await dbAll('posts');
+    const posts = await dbAll('posts_' + currentAdminLang);
     posts.forEach(p => $('#blogGrid').appendChild(createCard(p, 'posts')));
     
-    const settings = await dbGetObj('settings/main');
+    const settings = await dbGetObj('settings/main_' + currentAdminLang);
     if (settings) {
         for (const key of Object.keys(settings)) {
             const el = $('#s_' + key);
@@ -356,7 +374,9 @@ $('#saveSettingsBtn').onclick = async (e) => {
         contactEmail: $('#s_contactEmail').value,
     };
     
-    await dbSetObj('settings/main', data);
-    toast('Тексты успешно сохранены!');
+    try {
+        await dbSetObj('settings/main_' + currentAdminLang, data);
+        toast('Настройки сохранены');
+    } catch (err) { toast('Ошибка сохранения'); }
     btn.textContent = oldText;
 };

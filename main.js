@@ -5,6 +5,77 @@ const closeM = m => { m.classList.remove('open'); document.body.style.overflow =
 $$('.modal').forEach(m => m.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeM(m); }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $$('.modal.open').forEach(closeM); if ($('#lightbox').classList.contains('open')) { if (e.key === 'ArrowRight') lbStep(1); if (e.key === 'ArrowLeft') lbStep(-1); } });
 
+const burgerBtn = $('#burgerBtn');
+const mobileMenu = $('#mobileMenu');
+if(burgerBtn && mobileMenu) {
+    burgerBtn.addEventListener('click', () => openM(mobileMenu));
+    mobileMenu.addEventListener('click', (e) => {
+        if(e.target === mobileMenu || e.target.classList.contains('mm-link')) {
+            closeM(mobileMenu);
+        }
+    });
+}
+
+const currentLang = localStorage.getItem('site_lang') || 'ru';
+
+const UI_DICT = {
+    ru: {
+        navHome: 'Главная', navWorks: 'Портфолио', navBlog: 'Блог', navContact: 'Контакты',
+        sec1: '(01)<b>Обо мне</b>',
+        sec2: '(02)<b>Моя экспертиза</b>',
+        sec3: '(03)<b>Мои работы</b>',
+        sec6: '(06)<b>Блог</b>',
+        sec7: '(07) Контакты',
+        seeAll: 'Смотреть все',
+        seeAllBtn: 'СМОТРЕТЬ ВСЕ',
+        seeMoreBtn: 'УЗНАТЬ БОЛЬШЕ',
+        talkBtn: 'ДАВАЙТЕ ПОГОВОРИМ',
+        instaBtn: 'НАПИСАТЬ В INSTAGRAM',
+        modalTitle: 'Давайте обсудим',
+        modalDesc: 'Я всегда открыт для новых проектов, съемок и коллабораций. Напишите мне напрямую.',
+        fullPortfolio: 'Всё портфолио'
+    },
+    en: {
+        navHome: 'Home', navWorks: 'Portfolio', navBlog: 'Blog', navContact: 'Contact',
+        sec1: '(01)<b>About Me</b>',
+        sec2: '(02)<b>My Expertise</b>',
+        sec3: '(03)<b>My Works</b>',
+        sec6: '(06)<b>Blog</b>',
+        sec7: '(07) Contact',
+        seeAll: 'View all',
+        seeAllBtn: 'VIEW ALL',
+        seeMoreBtn: 'LEARN MORE',
+        talkBtn: 'LET\'S TALK',
+        instaBtn: 'DM ON INSTAGRAM',
+        modalTitle: 'Let\'s Discuss',
+        modalDesc: 'I am always open for new projects, shoots, and collaborations. Send me a direct message.',
+        fullPortfolio: 'Full Portfolio'
+    }
+};
+
+function applyLang() {
+    $$('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (UI_DICT[currentLang] && UI_DICT[currentLang][key]) {
+            el.innerHTML = UI_DICT[currentLang][key];
+        }
+    });
+    
+    const langSpans = $$('.lang-switch span');
+    if (langSpans.length) {
+        langSpans.forEach(s => {
+            s.classList.toggle('active', s.dataset.lang === currentLang);
+            s.onclick = () => {
+                if (s.dataset.lang !== currentLang) {
+                    localStorage.setItem('site_lang', s.dataset.lang);
+                    location.reload();
+                }
+            };
+        });
+    }
+}
+applyLang();
+
 import { dbAll, dbGetObj } from './firebase.js?v=2';
 
 /* ---------- ТЕКСТОВЫЙ ДВИЖОК ---------- */
@@ -16,7 +87,7 @@ function parseMarkdown(text) {
     return html;
 }
 
-dbGetObj('settings/main').then(settings => {
+dbGetObj('settings/main_' + currentLang).then(settings => {
     if (!settings) return;
     for (const [key, value] of Object.entries(settings)) {
         const el = $(`[data-content-key="${key}"]`);
@@ -113,7 +184,7 @@ function renderHeroCard(slide) {
     updateHeroProgress();
 }
 
-dbAll('hero_slides').then(list => {
+dbAll('hero_slides_' + currentLang).then(list => {
     if (list.length > 0) {
         list.forEach(s => renderHeroCard(s));
         activateHeroSlide(list[0]);
@@ -358,7 +429,7 @@ function initCategories() {
     });
 }
 
-dbAll('works').then(list => {
+dbAll('works_' + currentLang).then(list => {
     allWorks = list;
     initCategories();
     renderCarousel();
@@ -418,7 +489,7 @@ function postCard(p) {
 }
 function renderPosts() {
     const grid = $('#blogGrid'); 
-    dbAll('posts').then(list => {
+    dbAll('posts_' + currentLang).then(list => {
         list.forEach(r => grid.appendChild(postCard(r)));
     });
 }

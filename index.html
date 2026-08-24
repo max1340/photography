@@ -63,13 +63,41 @@
                                 <circle cx="8.5" cy="15.5" r="3.4" />
                                 <circle cx="15.5" cy="15.5" r="3.4" />
                             </svg></span>M.Photo</a>
-                    <div class="pills" id="pills">
-                        <a href="#top" class="active">Главная</a>
-                        <a href="#works">Портфолио</a>
-                        <a href="#blog">Блог</a>
-                        <a href="#contacts">Контакты</a>
+                    <div style="display:flex; align-items:center; gap:24px;">
+                        <div class="pills" id="pills">
+                            <a href="#top" class="active" data-i18n="navHome">Главная</a>
+                            <a href="#works" data-i18n="navWorks">Портфолио</a>
+                            <a href="#blog" data-i18n="navBlog">Блог</a>
+                            <a href="#contacts" data-i18n="navContact">Контакты</a>
+                        </div>
+                        <div class="lang-switch" id="langSwitch">
+                            <span data-lang="ru">RU</span>
+                            <span data-lang="en">EN</span>
+                        </div>
+                        <button class="burger" id="burgerBtn" aria-label="Меню">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
                 </nav>
+                
+                <!-- Мобильное меню -->
+                <div class="mobile-menu" id="mobileMenu">
+                    <div class="mm-inner">
+                        <a href="#top" class="mm-link" data-i18n="navHome">Главная</a>
+                        <a href="#works" class="mm-link" data-i18n="navWorks">Портфолио</a>
+                        <a href="#blog" class="mm-link" data-i18n="navBlog">Блог</a>
+                        <a href="#contacts" class="mm-link" data-i18n="navContact">Контакты</a>
+                        <div class="lang-switch" style="margin-top: 24px; justify-content: center;">
+                            <span data-lang="ru">RU</span>
+                            <span data-lang="en">EN</span>
+                        </div>
+                    </div>
+                </div>
+
                 <h1 class="hero-title" id="heroTitle">Запечатлеваю красоту мгновений сквозь объектив и выдержку</h1>
                 <div class="hero-foot">
                     <div class="tags" id="heroTags"></div>
@@ -96,7 +124,7 @@
         <!-- ABOUT -->
         <section class="about reveal" id="about">
             <div class="about-left">
-                <div class="label">(01)<b>Обо мне</b></div>
+                <div class="label" data-i18n="sec1">(01)<b>Обо мне</b></div>
                 <p data-content-key="aboutText">Я стремлюсь заключить в кадр самые драгоценные мгновения природы и дорог, сплетая гобелен искусства
                     вне времени — с щепоткой волшебства и честного света.</p>
             </div>
@@ -104,7 +132,7 @@
                 <h2 data-content-key="aboutQuote"><span class="w">Фотография</span> — это глубокое стремление <span class="w">ловить самые ценные
                         моменты</span> жизни и превращать их в искусство с щепоткой магии</h2>
                 <div class="btn-row">
-                    <button class="btn-outline" onclick="location.href='#expertise'">УЗНАТЬ БОЛЬШЕ</button>
+                    <button class="btn-outline" onclick="location.href='#expertise'" data-i18n="seeMoreBtn">УЗНАТЬ БОЛЬШЕ</button>
                     <span class="arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.2" stroke-linecap="round">
                             <path d="M7 17L17 7M9 7h8v8" />
@@ -123,7 +151,7 @@
         <section class="expertise reveal" id="expertise">
             <div class="exp-top">
                 <div>
-                    <div class="label">(02)<b>Моя экспертиза</b></div>
+                    <div class="label" data-i18n="sec2">(02)<b>Моя экспертиза</b></div>
                     <h2 class="exp-title" data-content-key="expTitle">Когда пойманные моменты превращают мечты в красивую реальность</h2>
                 </div>
                 <div class="exp-cats" id="expCats"></div>
@@ -149,7 +177,7 @@
                                 <path d="M9 6l6 6-6 6" />
                             </svg></button>
                     </div>
-                    <a class="seeall" href="#works">Смотреть все <svg width="26" height="10" viewBox="0 0 26 10"
+                    <a class="seeall" href="#works"><span data-i18n="seeAll">Смотреть все</span> <svg width="26" height="10" viewBox="0 0 26 10"
                             fill="none" stroke="currentColor" stroke-width="1.4">
                             <path d="M0 5h24M20 1l4 4-4 4" />
                         </svg></a>
@@ -161,13 +189,13 @@
         <section id="works">
             <div class="works-head reveal">
                 <div>
-                    <div class="label">(03)<b>Мои работы</b></div>
+                    <div class="label" data-i18n="sec3">(03)<b>Мои работы</b></div>
                     <h2 data-content-key="worksTitle"><span class="w">Исследуйте</span> искусство и точность <span class="w">моего портфолио</span>
                         вечной фотографии</h2>
                 </div>
                 <div class="right">
                     <p data-content-key="worksDesc">Отправьтесь в визуальное путешествие по избранным кадрам. Клик по карточке откроет галерею с деталями съёмки.</p>
-                    <div class="btn-row" style="margin-top:0"><button class="btn-outline" id="viewAllWorksBtn">СМОТРЕТЬ ВСЕ</button><span class="arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8" /></svg></span></div>
+                    <div class="btn-row" style="margin-top:0"><button class="btn-outline" id="viewAllWorksBtn" data-i18n="seeAllBtn">СМОТРЕТЬ ВСЕ</button><span class="arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8" /></svg></span></div>
                 </div>
             </div>
             <div class="works-grid reveal" id="worksGrid">
@@ -182,7 +210,7 @@
         <section id="blog">
             <div class="blog-head reveal">
                 <div>
-                    <div class="label">(06)<b>Блог</b></div>
+                    <div class="label" data-i18n="sec6">(06)<b>Блог</b></div>
                     <h2 data-content-key="blogTitle"><span class="w">Истории</span> с маршрутов: свет, дороги и люди <span class="w">в кадре и за
                             ним</span></h2>
                 </div>
@@ -198,8 +226,8 @@
         <!-- CONTACT -->
         <footer class="contact reveal" id="contacts">
             <div class="contact-top">
-                <h2>(07) Контакты<br><span data-content-key="contactTitle1">Давайте <span class="w">обсудим</span> ваше видение</span>
-                    <span class="inline-cta"><button class="btn-white js-contact" style="padding:14px 22px">ДАВАЙТЕ
+                <h2><span data-i18n="sec7">(07) Контакты</span><br><span data-content-key="contactTitle1">Давайте <span class="w">обсудим</span> ваше видение</span>
+                    <span class="inline-cta"><button class="btn-white js-contact" style="padding:14px 22px" data-i18n="talkBtn">ДАВАЙТЕ
                             ПОГОВОРИМ</button><span class="arr"><svg width="14" height="14" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
                                 <path d="M7 17L17 7M9 7h8v8" />
@@ -259,7 +287,7 @@
         <div class="mback" data-close></div>
         <div class="mbox gallery-box">
             <button class="mclose" data-close style="position:fixed; top:20px; right:24px; z-index:100;">✕</button>
-            <h3 style="margin-bottom: 24px; font-size: 28px;">Всё портфолио</h3>
+            <h3 style="margin-bottom: 24px; font-size: 28px;" data-i18n="fullPortfolio">Всё портфолио</h3>
             <div class="works-grid gallery-grid" id="fullGalleryGrid">
                 <!-- Works populated by JS -->
             </div>
@@ -270,8 +298,8 @@
     <div class="modal" id="contactModal">
         <div class="mback" data-close></div>
         <div class="mbox" style="width:min(400px,94vw); text-align: center; padding: 40px 32px;"><button class="mclose" data-close>✕</button>
-            <h3 style="margin-bottom: 12px; font-size: 24px;">Давайте обсудим</h3>
-            <p style="font-size:14px;color:var(--gray);margin:0 0 32px">Я всегда открыт для новых проектов, съемок и коллабораций. Напишите мне напрямую.</p>
+            <h3 style="margin-bottom: 12px; font-size: 24px;" data-i18n="modalTitle">Давайте обсудим</h3>
+            <p style="font-size:14px;color:var(--gray);margin:0 0 32px" data-i18n="modalDesc">Я всегда открыт для новых проектов, съемок и коллабораций. Напишите мне напрямую.</p>
             
             <a href="https://instagram.com/max.photography_134" target="_blank" id="modalInstaLink" class="btn-white" style="display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:16px; text-decoration:none; font-size:15px; font-weight:700;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -279,7 +307,7 @@
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                 </svg>
-                НАПИСАТЬ В INSTAGRAM
+                <span data-i18n="instaBtn">НАПИСАТЬ В INSTAGRAM</span>
             </a>
         </div>
     </div>
