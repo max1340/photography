@@ -97,7 +97,7 @@ dbGetObj('settings/main_' + currentLang).then(settings => {
             const words = value.split(',').map(w => w.trim()).filter(Boolean);
             if (words.length > 0) {
                 const html = words.map(w => `<span>${w.toUpperCase()} ✦</span>`).join('');
-                el.innerHTML = html + html; // дублируем для бесконечной анимации
+                el.innerHTML = html + html;
             }
             continue;
         }
@@ -195,8 +195,6 @@ function activateHeroSlide(slide, autoScroll = true) {
     updateHeroProgress();
 }
 
-
-
 function renderHeroCard(slide) {
     const el = document.createElement('div'); 
     el.className = 'hcard dyn'; 
@@ -285,7 +283,7 @@ if (track) {
     function restartAuto() { clearInterval(auto); auto = setInterval(nextSlide, 5200); }
     track.addEventListener('pointerenter', () => clearInterval(auto));
     track.addEventListener('pointerleave', restartAuto);
-    /* drag-скролл */
+    
     let drag = null;
     track.addEventListener('pointerdown', e => { drag = { x: e.clientX, l: track.scrollLeft }; track.classList.add('dragging'); });
     addEventListener('pointermove', e => { if (drag) track.scrollLeft = drag.l - (e.clientX - drag.x); });
@@ -335,7 +333,8 @@ function renderCarousel() {
         const slide = document.createElement('div');
         slide.className = 'slide';
         slide.dataset.title = item.title || '';
-        slide.dataset.place = item.place || item.sub || '';
+        const placeGenre = [item.place, (item.tags || []).join(', ') || item.sub].filter(Boolean).join(' • ');
+        slide.dataset.place = placeGenre;
         const finalImg = item.url || '';
         slide.innerHTML = `<div class="ph"><img src="${finalImg}" alt="${item.place || item.title || ''}" loading="lazy"></div>`;
         track.appendChild(slide);
@@ -343,7 +342,8 @@ function renderCarousel() {
 
     if (items.length > 0) {
         $('#expCapT').textContent = items[0].title || '';
-        $('#expCapP').textContent = items[0].place || items[0].sub || '';
+        const placeGenre = [items[0].place, (items[0].tags || []).join(', ') || items[0].sub].filter(Boolean).join(' • ');
+        $('#expCapP').textContent = placeGenre;
     } else {
         $('#expCapT').textContent = '';
         $('#expCapP').textContent = '';
@@ -356,7 +356,7 @@ function renderCarousel() {
 const MAIN_CATEGORIES = ['Все', 'Пейзаж', 'Архитектура', 'Снег', 'Горы', 'Море', 'Город'];
 let allWorks = [];
 let currentCategory = 'Все';
-let worksPageLimit = 4; // Показываем ровно 4 работы на главной
+let worksPageLimit = 4;
 let worksCurrentCount = 0;
 
 const PIN_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-1px; margin-right:4px; opacity:0.85;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
@@ -406,7 +406,6 @@ function renderWorksList(reset = false) {
     toLoad.forEach(w => {
         const card = createWorkCard(w);
         grid.appendChild(card);
-        // Плавное появление (Fade-in)
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 card.classList.add('show');
@@ -417,12 +416,51 @@ function renderWorksList(reset = false) {
     worksCurrentCount += toLoad.length;
 }
 
-// Кнопка "СМОТРЕТЬ ВСЕ" открывает модальную галерею
 const viewAllBtn = $('#viewAllWorksBtn');
 if (viewAllBtn) {
     viewAllBtn.addEventListener('click', () => {
         renderFullGallery();
         openM($('#fullGalleryModal'));
+    });
+}
+
+const expSeeAll = $('#expSeeAll');
+if (expSeeAll) {
+    expSeeAll.addEventListener('click', () => {
+        renderFullGallery();
+        openM($('#fullGalleryModal'));
+    });
+}
+
+function selectCategory(catName) {
+    if (!catName) return;
+    const catLower = catName.toLowerCase().replace('✦', '').trim();
+    const match = MAIN_CATEGORIES.find(c => c.toLowerCase() === catLower || catLower.includes(c.toLowerCase()));
+    currentCategory = match || catName.trim();
+    $$('#expCats span').forEach(s => s.classList.toggle('active', s.dataset.cat === currentCategory));
+    renderCarousel();
+    renderWorksList(true);
+}
+
+const heroTagsEl = $('#heroTags');
+if (heroTagsEl) {
+    heroTagsEl.addEventListener('click', (e) => {
+        const tag = e.target.closest('.tag');
+        if (!tag) return;
+        selectCategory(tag.textContent);
+        const worksSec = $('#works');
+        if (worksSec) worksSec.scrollIntoView({ behavior: 'smooth' });
+    });
+}
+
+const marqueeEl = $('#mtrack');
+if (marqueeEl) {
+    marqueeEl.addEventListener('click', (e) => {
+        const span = e.target.closest('span');
+        if (!span) return;
+        selectCategory(span.textContent);
+        const worksSec = $('#works');
+        if (worksSec) worksSec.scrollIntoView({ behavior: 'smooth' });
     });
 }
 
@@ -434,7 +472,6 @@ function renderFullGallery() {
     const filtered = getFilteredWorks();
     filtered.forEach(w => {
         const card = createWorkCard(w);
-        // Отключаем начальную анимацию появления для модалки, чтобы фото были видны сразу
         card.style.opacity = '1';
         card.style.transform = 'translateZ(0) translateY(0)';
         card.style.transition = 'border-color .3s, transform .3s';
@@ -468,7 +505,6 @@ dbAll('works_' + currentLang).then(list => {
     renderWorksList(true);
 });
 
-
 /* ---------- лайтбокс ---------- */
 let lbIndex = 0;
 function gallery() { 
@@ -494,11 +530,47 @@ function lbShow(i) {
     $('#lbTags').innerHTML = (it.tags || []).map(t => '<span class="wtag">' + t + '</span>').join('');
 }
 
+const lbTagsEl = $('#lbTags');
+if (lbTagsEl) {
+    lbTagsEl.addEventListener('click', (e) => {
+        const tag = e.target.closest('.wtag');
+        if (!tag) return;
+        selectCategory(tag.textContent);
+        closeM($('#lightbox'));
+        const worksSec = $('#works');
+        if (worksSec) worksSec.scrollIntoView({ behavior: 'smooth' });
+    });
+}
+
 function lbStep(d) { lbShow(lbIndex + d); }
 $('#lbNext').onclick = () => lbStep(1); 
 $('#lbPrev').onclick = () => lbStep(-1);
 
+let worksDrag = null;
+let worksHasMoved = false;
+const worksGridEl = $('#worksGrid');
+if (worksGridEl) {
+    worksGridEl.addEventListener('pointerdown', e => {
+        if (window.innerWidth <= 860) {
+            worksDrag = { x: e.clientX, l: worksGridEl.scrollLeft };
+            worksHasMoved = false;
+        }
+    });
+    window.addEventListener('pointermove', e => {
+        if (worksDrag) {
+            const dx = e.clientX - worksDrag.x;
+            if (Math.abs(dx) > 6) worksHasMoved = true;
+            worksGridEl.scrollLeft = worksDrag.l - dx;
+        }
+    });
+    window.addEventListener('pointerup', () => {
+        worksDrag = null;
+        setTimeout(() => { worksHasMoved = false; }, 50);
+    });
+}
+
 function handleCardClick(e, gridSelector) {
+    if (gridSelector === '#worksGrid' && worksHasMoved) return;
     const card = e.target.closest('.wcard'); 
     if (!card) return;
     const cards = $$(gridSelector + ' .wcard');
@@ -546,7 +618,6 @@ $('#blogGrid').addEventListener('click', e => {
     const arrows = $('#pvArrows');
     arrows.style.display = imgs.length > 1 ? 'flex' : 'none';
     
-    
     let rawContent = (p.content || '').split(/\n\n+/).map(t => '<p>' + t + '</p>').join('');
     $('#pvContent').innerHTML = parseMarkdown(rawContent);
     openM($('#postView'));
@@ -558,4 +629,3 @@ $('#pvPrev').onclick = () => pvTrack.scrollBy({ left: -pvTrack.clientWidth, beha
 
 /* ---------- контакты ---------- */
 $$('.js-contact').forEach(b => b.addEventListener('click', () => openM($('#contactModal'))));
-
