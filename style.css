@@ -518,7 +518,8 @@ button {
 /* STATS */
 .stats {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: clamp(48px, 6vw, 100px);
     border-top: 1px solid var(--line);
     padding-top: 40px;
     margin-top: 20px;
