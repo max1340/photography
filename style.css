@@ -1033,6 +1033,32 @@ button {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.mbox::-webkit-scrollbar {
+    display: none;
+}
+
+.os-thumb {
+    position: fixed;
+    width: 4px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, .28);
+    z-index: 1050;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: auto;
+}
+
+.os-thumb.show {
+    opacity: 1;
+}
+
+.os-thumb:hover,
+.os-thumb.drag {
+    background: rgba(255, 255, 255, .5);
 }
 
 .mbox.wide {
@@ -1046,8 +1072,9 @@ button {
     padding: 36px 32px;
 }
 
+.modal#postView .mbox,
 .mbox.article-box {
-    width: min(840px, 92vw);
+    width: min(780px, 94vw);
 }
 
 .mclose {
@@ -1124,28 +1151,62 @@ button {
     color: #fff;
 }
 
-.article-body h2 {
-    font-size: 26px;
+/* Post View Modal Typography & Components */
+.modal#postView .article-body h2,
+.modal#postView .mbox h3,
+.modal#postView .mbox h2,
+#postView .mbox h3,
+#postView .mbox h2,
+#pvTitle {
+    font-size: 27px;
     font-weight: 600;
-    line-height: 1.3;
-    margin: 8px 0 20px;
+    line-height: 1.25;
+    margin: 8px 0 16px;
 }
 
-.acontent {
-    font-size: 15px;
-    line-height: 1.8;
-    color: #dedcd6;
+.article-body h2 {
+    font-size: 27px;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 8px 0 16px;
 }
 
+#pvLead,
+.pv-lead {
+    font-size: 16.5px;
+    color: var(--gray);
+    line-height: 1.7;
+    margin: 12px 0 24px;
+    padding-left: 14px;
+    border-left: 2px solid rgba(255, 255, 255, .25);
+    max-width: 65ch;
+}
+
+.modal#postView .mtext p,
+.modal#postView .acontent p,
+#pvContent p,
 .acontent p {
-    margin-bottom: 16px;
+    font-size: 16px;
+    line-height: 1.85;
+    margin-bottom: 18px;
+    max-width: 65ch;
+    color: #d6d5cf;
+}
+
+.pv-sign {
+    margin-top: 26px;
+    color: var(--gray);
+    font-size: 13px;
+    letter-spacing: .04em;
 }
 
 .blog-carousel {
+    position: relative;
+    background: transparent;
+    padding: 0;
+    margin: 20px 0;
+    border-radius: 14px;
     overflow: hidden;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    background: #11100f;
 }
 
 .bc-track {
@@ -1162,15 +1223,72 @@ button {
 .bc-slide {
     flex: 0 0 100%;
     scroll-snap-align: start;
-    height: 420px;
+    height: auto;
     overflow: hidden;
+    background: transparent;
 }
 
 .bc-slide img {
     width: 100%;
     height: 100%;
+    max-height: 48vh;
+    border-radius: 0;
     object-fit: cover;
     display: block;
+}
+
+#pvArrows {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    pointer-events: none;
+    margin: 0;
+}
+
+#pvArrows .arr,
+#pvArrows .arr.ghost {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, .45);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, .25);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+
+#pvArrows .arr:hover,
+#pvArrows .arr.ghost:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #fff;
+    transform: none;
+}
+
+#pvCount,
+.bc-count {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    background: rgba(0, 0, 0, .55);
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 11px;
+    color: #fff;
+    pointer-events: none;
+    letter-spacing: .04em;
 }
 
 #toast {
@@ -1554,7 +1672,7 @@ button {
 
     .mbox.article-box {
         padding: 22px 16px;
-        width: min(520px, 94vw);
+        width: min(780px, 94vw);
     }
 
     .blog-carousel {
@@ -1563,7 +1681,7 @@ button {
     }
 
     .bc-slide {
-        height: 220px;
+        height: auto;
     }
 
     .lb-cap h4 {

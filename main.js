@@ -1,8 +1,18 @@
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const opt = u => (u && u.includes('res.cloudinary.com') && u.includes('/upload/') && !/\/f_auto/.test(u)) ? u.replace('/upload/', '/upload/f_auto,q_auto/') : u;
 const toast = (msg) => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600); };
-const openM = m => { m.classList.add('open'); document.body.style.overflow = 'hidden'; };
-const closeM = m => { m.classList.remove('open'); document.body.style.overflow = ''; };
+const openM = m => { 
+    m.classList.add('open'); 
+    document.body.style.overflow = 'hidden'; 
+    const mb = m.querySelector('.mbox');
+    if (mb && mb._updateScroll) requestAnimationFrame(() => mb._updateScroll());
+};
+const closeM = m => { 
+    m.classList.remove('open'); 
+    document.body.style.overflow = ''; 
+    const mb = m.querySelector('.mbox');
+    if (mb && mb._closeScroll) mb._closeScroll();
+};
 $$('.modal').forEach(m => m.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeM(m); }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $$('.modal.open').forEach(closeM); if ($('#lightbox').classList.contains('open')) { if (e.key === 'ArrowRight') lbStep(1); if (e.key === 'ArrowLeft') lbStep(-1); } });
 
@@ -268,7 +278,7 @@ const cio = new IntersectionObserver(es => es.forEach(e => {
         el.textContent = Math.round(num * k) + suf; 
         if (p < 1) requestAnimationFrame(tick); 
     })(t0);
-}), { threshold: .6 });
+    }), { threshold: .6 });
 $$('[data-count]').forEach(el => cio.observe(el));
 
 /* scrollspy */
@@ -587,7 +597,7 @@ function handleCardClick(e, gridSelector) {
 
 $('#worksGrid').addEventListener('click', e => handleCardClick(e, '#worksGrid'));
 
-
+/* ---------- блог ---------- */
 const postsMap = {};
 function postCard(p) {
     postsMap[p.id] = p; const el = document.createElement('article'); el.className = 'bcard'; el.dataset.pid = p.id;
@@ -608,11 +618,24 @@ renderPosts();
 $('#blogGrid').addEventListener('click', e => {
     const card = e.target.closest('.bcard'); if (!card) return;
     const p = postsMap[card.dataset.pid]; if (!p) return;
-    $('#pvDate').textContent = p.date; $('#pvTitle').textContent = p.title; 
     
+    // 1. Дата и время чтения
+    const readMin = Math.max(1, Math.round((p.content || '').length / 1000));
+    const readSuffix = currentLang === 'en' ? 'min read' : 'мин чтения';
+    $('#pvDate').textContent = (p.date ? p.date + ' · ' : '') + readMin + ' ' + readSuffix;
+    
+    // 2. Заголовок и лид
+    $('#pvTitle').textContent = p.title || '';
+    const pvLead = $('#pvLead');
+    if (pvLead) {
+        pvLead.textContent = p.excerpt || '';
+        pvLead.style.display = p.excerpt ? '' : 'none';
+    }
+    
+    // 3. Карусель фото
     const track = $('#pvTrack');
     track.innerHTML = '';
-    const imgs = (p.images && p.images.length > 0 ? p.images : [p.img]).map(opt);
+    const imgs = (p.images && p.images.length > 0 ? p.images : [p.img]).filter(Boolean).map(opt);
     
     imgs.forEach(url => {
         const slide = document.createElement('div');
@@ -621,17 +644,165 @@ $('#blogGrid').addEventListener('click', e => {
         track.appendChild(slide);
     });
     
+    // Стрелки и счетчик фото
     const arrows = $('#pvArrows');
-    arrows.style.display = imgs.length > 1 ? 'flex' : 'none';
+    if (arrows) {
+        arrows.style.display = imgs.length > 1 ? 'flex' : 'none';
+    }
     
+    const countEl = $('#pvCount');
+    if (countEl) {
+        if (imgs.length > 1) {
+            countEl.style.display = '';
+            countEl.textContent = `1 / ${imgs.length}`;
+        } else {
+            countEl.style.display = 'none';
+        }
+    }
+    
+    track.scrollTo({ left: 0, behavior: 'auto' });
+    
+    // 4. Тело статьи
     let rawContent = (p.content || '').split(/\n\n+/).map(t => '<p>' + t + '</p>').join('');
     $('#pvContent').innerHTML = parseMarkdown(rawContent);
+    
+    // 5. Подпись
+    const signEl = $('#pvSign');
+    if (signEl) {
+        signEl.textContent = currentLang === 'ru' ? 'Макс · M.Photo' : 'Max · M.Photo';
+    }
+    
     openM($('#postView'));
 });
 
 const pvTrack = $('#pvTrack');
-$('#pvNext').onclick = () => pvTrack.scrollBy({ left: pvTrack.clientWidth, behavior: 'smooth' });
-$('#pvPrev').onclick = () => pvTrack.scrollBy({ left: -pvTrack.clientWidth, behavior: 'smooth' });
+if (pvTrack) {
+    $('#pvNext').onclick = () => pvTrack.scrollBy({ left: pvTrack.clientWidth, behavior: 'smooth' });
+    $('#pvPrev').onclick = () => pvTrack.scrollBy({ left: -pvTrack.clientWidth, behavior: 'smooth' });
+    
+    pvTrack.addEventListener('scroll', () => {
+        if (!pvTrack.clientWidth) return;
+        const countEl = $('#pvCount');
+        const total = pvTrack.children.length;
+        if (total > 1 && countEl) {
+            const i = Math.min(total, Math.max(1, Math.round(pvTrack.scrollLeft / pvTrack.clientWidth) + 1));
+            countEl.textContent = `${i} / ${total}`;
+        }
+    }, { passive: true });
+}
+
+/* ---------- кастомный оверлей-скроллбар для модалок ---------- */
+function initOverlayScroll(mbox) {
+    if (!mbox) return;
+    const thumb = document.createElement('div');
+    thumb.className = 'os-thumb';
+    document.body.appendChild(thumb);
+
+    let hideTimer = null;
+    let isDragging = false;
+    let startY = 0;
+    let startScrollTop = 0;
+
+    function showThumb() {
+        if (mbox.scrollHeight <= mbox.clientHeight + 4) {
+            thumb.style.display = 'none';
+            thumb.classList.remove('show');
+            return;
+        }
+        thumb.style.display = '';
+        thumb.classList.add('show');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+            if (!isDragging) thumb.classList.remove('show');
+        }, 800);
+    }
+
+    function update() {
+        if (mbox.scrollHeight <= mbox.clientHeight + 4) {
+            thumb.style.display = 'none';
+            thumb.classList.remove('show');
+            return;
+        }
+        const rect = mbox.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+            thumb.style.display = 'none';
+            thumb.classList.remove('show');
+            return;
+        }
+        thumb.style.display = '';
+        const height = Math.max(40, mbox.clientHeight * mbox.clientHeight / mbox.scrollHeight);
+        const top = rect.top + (mbox.scrollTop / mbox.scrollHeight) * mbox.clientHeight;
+        const left = rect.right - 10;
+        thumb.style.height = `${height}px`;
+        thumb.style.top = `${top}px`;
+        thumb.style.left = `${left}px`;
+    }
+
+    mbox.addEventListener('scroll', () => {
+        update();
+        showThumb();
+    }, { passive: true });
+
+    mbox.addEventListener('mouseenter', () => {
+        update();
+        showThumb();
+    });
+
+    window.addEventListener('resize', update);
+
+    mbox.addEventListener('load', (e) => {
+        if (e.target && e.target.tagName === 'IMG') {
+            update();
+        }
+    }, { capture: true });
+
+    thumb.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        startScrollTop = mbox.scrollTop;
+        thumb.classList.add('drag');
+        thumb.classList.add('show');
+        thumb.setPointerCapture(e.pointerId);
+    });
+
+    thumb.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const deltaY = e.clientY - startY;
+        const thumbHeight = Math.max(40, mbox.clientHeight * mbox.clientHeight / mbox.scrollHeight);
+        const scrollable = mbox.scrollHeight - mbox.clientHeight;
+        const trackHeight = mbox.clientHeight - thumbHeight;
+        if (trackHeight > 0) {
+            mbox.scrollTop = startScrollTop + (deltaY / trackHeight) * scrollable;
+        }
+        update();
+    });
+
+    const stopDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        thumb.classList.remove('drag');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => thumb.classList.remove('show'), 800);
+    };
+
+    thumb.addEventListener('pointerup', stopDrag);
+    thumb.addEventListener('pointercancel', stopDrag);
+
+    mbox._updateScroll = () => {
+        update();
+        showThumb();
+    };
+
+    mbox._closeScroll = () => {
+        clearTimeout(hideTimer);
+        isDragging = false;
+        thumb.classList.remove('show');
+        thumb.classList.remove('drag');
+        thumb.style.display = 'none';
+    };
+}
+
+$$('.mbox').forEach(initOverlayScroll);
 
 /* ---------- контакты ---------- */
 $$('.js-contact').forEach(b => b.addEventListener('click', () => openM($('#contactModal'))));

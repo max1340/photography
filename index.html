@@ -268,21 +268,24 @@
         <div class="mbox article-box"><button class="mclose" data-close>✕</button>
             <div class="blog-carousel" id="pvCarousel">
                 <div class="bc-track" id="pvTrack"></div>
-            </div>
-            <div class="exp-arrows" id="pvArrows" style="display:none; justify-content:center; margin-bottom: 20px;">
-                <button class="arr ghost" id="pvPrev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                        <path d="M15 6l-6 6 6 6" />
-                    </svg></button>
-                <button class="arr" id="pvNext"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                        <path d="M9 6l6 6-6 6" />
-                    </svg></button>
+                <span class="bc-count" id="pvCount"></span>
+                <div class="exp-arrows" id="pvArrows" style="display:none;">
+                    <button class="arr" id="pvPrev" aria-label="Назад"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M15 6l-6 6 6 6" />
+                        </svg></button>
+                    <button class="arr" id="pvNext" aria-label="Вперёд"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M9 6l6 6-6 6" />
+                        </svg></button>
+                </div>
             </div>
             <div class="article-body">
                 <span class="bdate" id="pvDate"></span>
                 <h2 id="pvTitle"></h2>
-                <div class="acontent" id="pvContent"></div>
+                <p class="pv-lead" id="pvLead"></p>
+                <div class="acontent mtext" id="pvContent"></div>
+                <p class="pv-sign" id="pvSign"></p>
             </div>
         </div>
     </div>
