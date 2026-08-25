@@ -75,6 +75,7 @@ function applyLang() {
     }
 }
 applyLang();
+$$('.seeall').forEach(a => a.setAttribute('href', 'gallery.html'));
 
 import { dbAll, dbGetObj } from './firebase.js?v=2';
 
@@ -418,18 +419,12 @@ function renderWorksList(reset = false) {
 
 const viewAllBtn = $('#viewAllWorksBtn');
 if (viewAllBtn) {
-    viewAllBtn.addEventListener('click', () => {
-        renderFullGallery();
-        openM($('#fullGalleryModal'));
-    });
+    viewAllBtn.addEventListener('click', () => { location.href = 'gallery.html'; });
 }
 
 const expSeeAll = $('#expSeeAll');
 if (expSeeAll) {
-    expSeeAll.addEventListener('click', () => {
-        renderFullGallery();
-        openM($('#fullGalleryModal'));
-    });
+    expSeeAll.addEventListener('click', () => { location.href = 'gallery.html'; });
 }
 
 function selectCategory(catName) {
@@ -464,20 +459,7 @@ if (marqueeEl) {
     });
 }
 
-function renderFullGallery() {
-    const grid = $('#fullGalleryGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    
-    const filtered = getFilteredWorks();
-    filtered.forEach(w => {
-        const card = createWorkCard(w);
-        card.style.opacity = '1';
-        card.style.transform = 'translateZ(0) translateY(0)';
-        card.style.transition = 'border-color .3s, transform .3s';
-        grid.appendChild(card);
-    });
-}
+
 
 function initCategories() {
     const container = $('#expCats');
@@ -579,8 +561,7 @@ function handleCardClick(e, gridSelector) {
 }
 
 $('#worksGrid').addEventListener('click', e => handleCardClick(e, '#worksGrid'));
-const fgGrid = $('#fullGalleryGrid');
-if (fgGrid) fgGrid.addEventListener('click', e => handleCardClick(e, '#fullGalleryGrid'));
+
 
 const postsMap = {};
 function postCard(p) {
