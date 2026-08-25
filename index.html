@@ -132,17 +132,20 @@
                     <h4 id="expCapT">Гранит и утренний туман</h4>
                     <p id="expCapP">Йосемити, США</p>
                 </div>
-                <div class="exp-arrows">
-                    <button class="arr ghost" id="expPrev" aria-label="Назад"><svg width="15" height="15"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                            stroke-linecap="round">
-                            <path d="M15 6l-6 6 6 6" />
-                        </svg></button>
-                    <button class="arr" id="expNext" aria-label="Вперёд"><svg width="15" height="15"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                            stroke-linecap="round">
-                            <path d="M9 6l6 6-6 6" />
-                        </svg></button>
+                <div style="display:flex; flex-direction:column; gap:14px; align-items:flex-end;">
+                    <div class="exp-arrows">
+                        <button class="arr ghost" id="expPrev" aria-label="Назад"><svg width="15" height="15"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                stroke-linecap="round">
+                                <path d="M15 6l-6 6 6 6" />
+                            </svg></button>
+                        <button class="arr" id="expNext" aria-label="Вперёд"><svg width="15" height="15"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                stroke-linecap="round">
+                                <path d="M9 6l6 6-6 6" />
+                            </svg></button>
+                    </div>
+                    <a class="seeall" id="expSeeAll" href="gallery.html"><span data-i18n="seeAll">Смотреть все</span> <svg width="26" height="10" viewBox="0 0 26 10" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M0 5h24M20 1l4 4-4 4" /></svg></a>
                 </div>
             </div>
         </section>
@@ -152,12 +155,11 @@
             <div class="works-head reveal">
                 <div>
                     <div class="label" data-i18n="sec3">(03)<b>Мои работы</b></div>
-                    <h2 data-content-key="worksTitle"><span class="w">Исследуйте</span> искусство и точность <span class="w">моего портфолио</span>
-                        фотографии вне времени</h2>
+                    <h2 id="worksTitle"><span class="w">Избранные кадры</span>, которые я привожу из каждой экспедиции</h2>
                 </div>
                 <div class="right">
-                    <p data-content-key="worksDesc">Отправьтесь в визуальное путешествие по избранным кадрам. Клик по карточке откроет галерею с деталями съёмки.</p>
-                    <div class="btn-row" style="margin-top:0"><button class="btn-outline" id="viewAllWorksBtn" data-i18n="seeAllBtn">СМОТРЕТЬ ВСЕ</button><span class="arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8" /></svg></span></div>
+                    <p id="worksDesc">Несколько кадров, которые я не мог оставить в архиве. Клик по карточке откроет детали съёмки, полная коллекция — в галерее.</p>
+                    <div class="btn-row" style="margin-top:0"><button class="btn-outline" id="viewAllWorksBtn" data-i18n="seeAllBtn">СМОТРЕТЬ ВСЕ</button><span class="arr" id="viewAllWorksArr" style="cursor:pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8" /></svg></span></div>
                 </div>
             </div>
             <div class="works-grid reveal" id="worksGrid">

@@ -150,6 +150,7 @@
 
 <script type="module">
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const opt = u => (u && u.includes('res.cloudinary.com') && u.includes('/upload/') && !/\/f_auto/.test(u)) ? u.replace('/upload/', '/upload/f_auto,q_auto/') : u;
   const currentLang = localStorage.getItem('site_lang') || 'ru';
   document.documentElement.lang = currentLang;
 
@@ -235,7 +236,7 @@
     const el = document.createElement('figure');
     el.className = 'g-item';
     const media = w.url
-      ? `<img src="${w.url}" alt="${w.title || ''}" loading="lazy">`
+      ? `<img src="${opt(w.url)}" alt="${w.title || ''}" loading="lazy">`
       : `<div class="g-demo" style="aspect-ratio:${w.ratio || '3/2'};background:${w.bg}"></div>`;
     el.innerHTML = media + `<figcaption class="g-cap"><b>${w.title || ''}</b><span>${w.place || ''}</span></figcaption>`;
     el.addEventListener('click', () => lbShow(i));
@@ -260,7 +261,7 @@
     const w = filtered[lb];
     const img = $('#lbImg');
     if (w.url) {
-      img.src = w.url;
+      img.src = opt(w.url);
       img.style.aspectRatio = '';
       img.style.width = '';
       img.style.background = '';
@@ -291,7 +292,9 @@
   renderFilters();
   (async () => {
     try {
-      all = (await dbAll('works_' + currentLang)) || [];
+      const list = (await dbAll('works_' + currentLang)) || [];
+      list.sort((a, b) => (a.order || 0) - (b.order || 0));
+      all = list;
     } catch (e) { all = []; }
     if (!all.length) all = demoWorks();
     apply();

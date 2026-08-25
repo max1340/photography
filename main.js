@@ -1,4 +1,5 @@
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const opt = u => (u && u.includes('res.cloudinary.com') && u.includes('/upload/') && !/\/f_auto/.test(u)) ? u.replace('/upload/', '/upload/f_auto,q_auto/') : u;
 const toast = (msg) => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2600); };
 const openM = m => { m.classList.add('open'); document.body.style.overflow = 'hidden'; };
 const closeM = m => { m.classList.remove('open'); document.body.style.overflow = ''; };
@@ -33,7 +34,9 @@ const UI_DICT = {
         instaBtn: 'НАПИСАТЬ В INSTAGRAM',
         modalTitle: 'Давайте обсудим',
         modalDesc: 'Я всегда открыт для новых проектов, съемок и творческих коллабораций. Напишите мне напрямую.',
-        fullPortfolio: 'Всё портфолио'
+        fullPortfolio: 'Всё портфолио',
+        worksTitle: '<span class="w">Избранные кадры</span>, которые я привожу из каждой экспедиции',
+        worksDesc: 'Несколько кадров, которые я не мог оставить в архиве. Клик по карточке откроет детали съёмки, полная коллекция — в галерее.'
     },
     en: {
         navHome: 'Home', navWorks: 'Portfolio', navBlog: 'Blog', navContact: 'Contact',
@@ -49,7 +52,9 @@ const UI_DICT = {
         instaBtn: 'MESSAGE ON INSTAGRAM',
         modalTitle: 'Let\'s Connect',
         modalDesc: 'I am always open to new projects, expeditions, and creative collaborations. Send me a direct message.',
-        fullPortfolio: 'Complete Portfolio'
+        fullPortfolio: 'Complete Portfolio',
+        worksTitle: '<span class="w">Featured Shots</span> from every journey and expedition',
+        worksDesc: 'A curated selection of frames that couldn\'t stay in the archive. Click any card for shooting details; the complete collection is in the gallery.'
     }
 };
 
@@ -60,6 +65,14 @@ function applyLang() {
             el.innerHTML = UI_DICT[currentLang][key];
         }
     });
+    const wt = $('#worksTitle');
+    if (wt && UI_DICT[currentLang] && UI_DICT[currentLang].worksTitle) {
+        wt.innerHTML = UI_DICT[currentLang].worksTitle;
+    }
+    const wd = $('#worksDesc');
+    if (wd && UI_DICT[currentLang] && UI_DICT[currentLang].worksDesc) {
+        wd.textContent = UI_DICT[currentLang].worksDesc;
+    }
     
     const langSpans = $$('.lang-switch span');
     if (langSpans.length) {
@@ -159,16 +172,17 @@ function activateHeroSlide(slide, autoScroll = true) {
     if (!slide) return;
     currentHeroSlideId = slide.id;
     const img = $('#heroImg');
+    const slideUrl = opt(slide.url);
     if (img) {
         img.style.transition = 'opacity 0.25s ease-in-out';
-        if (img.src !== slide.url && !img.src.endsWith(slide.url)) {
+        if (img.src !== slideUrl && !img.src.endsWith(slideUrl)) {
             img.style.opacity = 0;
             setTimeout(() => {
-                img.src = slide.url;
+                img.src = slideUrl;
                 img.style.opacity = 1;
             }, 250);
         } else {
-            img.src = slide.url;
+            img.src = slideUrl;
         }
     }
     
@@ -201,7 +215,7 @@ function renderHeroCard(slide) {
     el.className = 'hcard dyn'; 
     el.dataset.id = slide.id;
     el.innerHTML = `
-        <div class="ph ph-sm"><img src="${slide.url}" alt="${slide.title || ''}"></div>
+        <div class="ph ph-sm"><img src="${opt(slide.url)}" alt="${slide.title || ''}"></div>
         <div class="hcard-body"><h4 class="htitle">${slide.title}</h4><p class="hsub">${slide.sub || ''}</p></div>
     `;
     el.addEventListener('click', () => {
@@ -336,7 +350,7 @@ function renderCarousel() {
         slide.dataset.title = item.title || '';
         const placeGenre = [item.place, (item.tags || []).join(', ') || item.sub].filter(Boolean).join(' • ');
         slide.dataset.place = placeGenre;
-        const finalImg = item.url || '';
+        const finalImg = opt(item.url || '');
         slide.innerHTML = `<div class="ph"><img src="${finalImg}" alt="${item.place || item.title || ''}" loading="lazy"></div>`;
         track.appendChild(slide);
     });
@@ -366,7 +380,7 @@ function createWorkCard(it) {
     const el = document.createElement('article');
     el.className = 'wcard';
     el.dataset.id = it.id;
-    const finalImg = it.url || '';
+    const finalImg = opt(it.url || '');
     const descText = it.sub || '';
     const placeText = it.place ? `<span style="font-weight:600; opacity:0.95; display:inline-flex; align-items:center;">${PIN_SVG}${it.place}</span>` : '';
     const fullSub = [placeText, descText].filter(Boolean).join(' — ');
@@ -392,19 +406,13 @@ function getFilteredWorks() {
     });
 }
 
-function renderWorksList(reset = false) {
+function renderWorksList() {
     const grid = $('#worksGrid');
     if (!grid) return;
+    grid.innerHTML = '';
     
-    if (reset) {
-        grid.innerHTML = '';
-        worksCurrentCount = 0;
-    }
-    
-    const filtered = getFilteredWorks();
-    const toLoad = filtered.slice(worksCurrentCount, worksCurrentCount + worksPageLimit);
-    
-    toLoad.forEach(w => {
+    const items = allWorks.slice(0, 4);
+    items.forEach(w => {
         const card = createWorkCard(w);
         grid.appendChild(card);
         requestAnimationFrame(() => {
@@ -413,18 +421,36 @@ function renderWorksList(reset = false) {
             });
         });
     });
-    
-    worksCurrentCount += toLoad.length;
+}
+
+function updateExpSeeAll() {
+    const el = $('#expSeeAll');
+    if (!el) return;
+    if (currentCategory && currentCategory !== 'Все') {
+        el.href = 'gallery.html?cat=' + encodeURIComponent(currentCategory);
+    } else {
+        el.href = 'gallery.html';
+    }
 }
 
 const viewAllBtn = $('#viewAllWorksBtn');
 if (viewAllBtn) {
     viewAllBtn.addEventListener('click', () => { location.href = 'gallery.html'; });
 }
+const viewAllWorksArr = $('#viewAllWorksArr');
+if (viewAllWorksArr) {
+    viewAllWorksArr.addEventListener('click', () => { location.href = 'gallery.html'; });
+}
 
 const expSeeAll = $('#expSeeAll');
 if (expSeeAll) {
-    expSeeAll.addEventListener('click', () => { location.href = 'gallery.html'; });
+    expSeeAll.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = (currentCategory && currentCategory !== 'Все')
+            ? 'gallery.html?cat=' + encodeURIComponent(currentCategory)
+            : 'gallery.html';
+        location.href = url;
+    });
 }
 
 function selectCategory(catName) {
@@ -434,7 +460,7 @@ function selectCategory(catName) {
     currentCategory = match || catName.trim();
     $$('#expCats span').forEach(s => s.classList.toggle('active', s.dataset.cat === currentCategory));
     renderCarousel();
-    renderWorksList(true);
+    updateExpSeeAll();
 }
 
 const heroTagsEl = $('#heroTags');
@@ -443,8 +469,8 @@ if (heroTagsEl) {
         const tag = e.target.closest('.tag');
         if (!tag) return;
         selectCategory(tag.textContent);
-        const worksSec = $('#works');
-        if (worksSec) worksSec.scrollIntoView({ behavior: 'smooth' });
+        const expSec = $('#expertise');
+        if (expSec) expSec.scrollIntoView({ behavior: 'smooth' });
     });
 }
 
@@ -454,12 +480,10 @@ if (marqueeEl) {
         const span = e.target.closest('span');
         if (!span) return;
         selectCategory(span.textContent);
-        const worksSec = $('#works');
-        if (worksSec) worksSec.scrollIntoView({ behavior: 'smooth' });
+        const expSec = $('#expertise');
+        if (expSec) expSec.scrollIntoView({ behavior: 'smooth' });
     });
 }
-
-
 
 function initCategories() {
     const container = $('#expCats');
@@ -475,24 +499,25 @@ function initCategories() {
             el.classList.add('active');
             currentCategory = el.dataset.cat;
             renderCarousel();
-            renderWorksList(true);
+            updateExpSeeAll();
         });
     });
 }
 
 dbAll('works_' + currentLang).then(list => {
+    list.sort((a, b) => (a.order || 0) - (b.order || 0));
     allWorks = list;
     initCategories();
     renderCarousel();
-    renderWorksList(true);
+    renderWorksList();
+    updateExpSeeAll();
 });
 
 /* ---------- лайтбокс ---------- */
 let lbIndex = 0;
 function gallery() { 
-    const filtered = getFilteredWorks();
-    return filtered.map(c => ({
-        src: c.url,
+    return allWorks.slice(0, 4).map(c => ({
+        src: opt(c.url),
         title: c.title || '',
         sub: c.sub || '',
         place: c.place || '',
@@ -505,7 +530,7 @@ function lbShow(i) {
     if (g.length === 0) return;
     lbIndex = (i + g.length) % g.length; 
     const it = g[lbIndex];
-    $('#lbImg').src = it.src; 
+    $('#lbImg').src = opt(it.src); 
     $('#lbTitle').textContent = it.title; 
     const subParts = [it.place, it.sub].filter(Boolean);
     $('#lbSub').textContent = subParts.join(' • ');
@@ -567,7 +592,7 @@ const postsMap = {};
 function postCard(p) {
     postsMap[p.id] = p; const el = document.createElement('article'); el.className = 'bcard'; el.dataset.pid = p.id;
     el.innerHTML = `
-        <div class="ph"><img src="${p.img}" alt=""></div>
+        <div class="ph"><img src="${opt(p.img)}" alt=""></div>
         <div class="bmeta"><span class="bdate">${p.date}</span><h3>${p.title}</h3><p>${p.excerpt}</p><span class="bread">ЧИТАТЬ <svg width="14" height="10" viewBox="0 0 26 10" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 5h24M20 1l4 4-4 4"/></svg></span></div>
     `;
     return el;
@@ -587,12 +612,12 @@ $('#blogGrid').addEventListener('click', e => {
     
     const track = $('#pvTrack');
     track.innerHTML = '';
-    const imgs = p.images && p.images.length > 0 ? p.images : [p.img];
+    const imgs = (p.images && p.images.length > 0 ? p.images : [p.img]).map(opt);
     
     imgs.forEach(url => {
         const slide = document.createElement('div');
         slide.className = 'bc-slide';
-        slide.innerHTML = `<img src="${url}" alt="">`;
+        slide.innerHTML = `<img src="${opt(url)}" alt="">`;
         track.appendChild(slide);
     });
     

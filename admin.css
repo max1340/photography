@@ -67,6 +67,44 @@ body {
     background: rgba(255, 255, 255, 0.06);
 }
 
+/* Подсветка ошибок валидации */
+.inp.err, .ph-upload.err {
+    border-color: #ff4444 !important;
+    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.25);
+}
+
+/* Тёмная тема для селекта и выпадающего списка */
+select.inp {
+    background: #161616;
+    color: var(--text);
+    cursor: pointer;
+}
+select.inp option {
+    background: #1e1e1e;
+    color: var(--text);
+}
+select.inp option:checked {
+    background: #333;
+}
+
+/* Строка фильтров */
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.filter-row .inp {
+    margin-bottom: 0;
+}
+.filter-row input.inp {
+    flex: 1 1 200px;
+}
+.filter-row select.inp {
+    flex: 0 1 auto;
+    min-width: 160px;
+}
+
 /* Логин */
 .login-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -182,8 +220,32 @@ body {
 .card-body { padding: 24px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .card-body h4 { font-size: 18px; font-weight: 600; line-height: 1.3;}
 .card-body p { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
-.card-actions { display: flex; gap: 12px; margin-top: auto; padding: 0 24px 24px 24px; }
-.card-actions button { flex: 1; border-radius: 8px; }
+
+/* Компактные кнопки действий в карточке */
+.card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+    padding: 0 24px 24px 24px;
+}
+.card-actions button {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+.card-actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    font-size: 14px;
+    font-weight: 700;
+}
 
 /* Модалка редактирования */
 .modal {
@@ -196,29 +258,380 @@ body {
 .modal.open { opacity: 1; pointer-events: all; }
 .modal-box {
     background: var(--surface); padding: 40px; border-radius: var(--radius);
-    width: 100%; max-width: 520px; position: relative;
+    width: 100%; max-width: 540px; position: relative;
+    max-height: 90vh; overflow-y: auto;
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 24px 48px rgba(0,0,0,0.5);
     transform: scale(0.95); transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .modal.open .modal-box { transform: scale(1); }
+
+/* Широкая модалка для редактора блога */
+.modal-box.modal-box--wide {
+    max-width: 860px;
+    width: 95%;
+}
+
 .modal-close {
     position: absolute; top: 20px; right: 24px; background: none; border: none;
     color: var(--text-dim); font-size: 28px; cursor: pointer; transition: 0.2s;
+    z-index: 10;
 }
 .modal-close:hover { color: var(--text); transform: rotate(90deg); }
-.modal h3 { margin-bottom: 32px; font-weight: 600; font-size: 22px;}
 
-.ph-upload {
-    width: 100%; height: 240px; border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    margin-bottom: 24px; position: relative; overflow: hidden;
+.modal-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-right: 32px;
+}
+.modal-header-row h3 {
+    font-weight: 600;
+    font-size: 22px;
+    margin-bottom: 0;
+}
+
+/* Мобильный переключатель колонок */
+.modal-mode-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px;
+    border-radius: 20px;
+}
+.modal-mode-tabs .btn-tab {
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 14px;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    background: transparent;
+    transition: 0.2s;
+}
+.modal-mode-tabs .btn-tab.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text);
+    font-weight: 700;
+}
+
+/* Двухколоночный макет */
+.modal-body-layout {
+    display: block;
+}
+.post-col-edit {
+    width: 100%;
+}
+.post-col-preview {
+    width: 100%;
+}
+
+@media (min-width: 1000px) {
+    .modal-box.modal-box--wide .modal-body-layout {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+    }
+    .modal-box.modal-box--wide .post-col-edit {
+        flex: 1 1 52%;
+        min-width: 0;
+        display: block !important;
+    }
+    .modal-box.modal-box--wide .post-col-preview {
+        flex: 1 1 48%;
+        min-width: 0;
+        display: block !important;
+    }
+    .modal-box.modal-box--wide #postMobileTabs {
+        display: none !important;
+    }
+}
+
+@media (max-width: 999px) {
+    .modal-box.modal-box--wide .modal-body-layout {
+        display: block;
+    }
+    .modal-box.modal-box--wide .post-col-edit.tab-hidden,
+    .modal-box.modal-box--wide .post-col-preview.tab-hidden {
+        display: none !important;
+    }
+}
+
+/* Живое превью поста */
+.post-preview-sticky {
+    position: sticky;
+    top: 0;
+}
+.preview-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+.post-preview-card {
     background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+.post-preview-card .pv-cover {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: block;
+}
+.post-preview-card .pv-date {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e5a93c;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.post-preview-card .pv-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+.post-preview-card .pv-lead {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    border-left: 2px solid rgba(255, 255, 255, 0.2);
+    padding-left: 10px;
+    font-style: italic;
+}
+.post-preview-card .pv-body {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+}
+.post-preview-card .pv-body p {
+    margin-bottom: 12px;
+}
+.post-preview-card .pv-body .w {
+    color: #ffffff;
+    font-weight: 800;
+}
+.post-preview-card .pv-body strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Зона загрузки фото и Drag & Drop */
+.field-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.photo-counter {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+}
+.ph-upload {
+    width: 100%;
+    min-height: 140px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: 20px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 16px;
     transition: 0.2s;
 }
 .ph-upload:hover { border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.05); }
-.ph-upload img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
-.ph-upload span { color: var(--text); font-weight: 500; font-size: 15px; position: relative; z-index: 1; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 8px; backdrop-filter: blur(4px);}
+.ph-upload.drag-over {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.01);
+}
+
+.upload-previews {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.upload-previews:empty {
+    margin-bottom: 0;
+}
+
+/* Сетка тайлов 120x120 */
+.thumb-tile {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #181818;
+    flex-shrink: 0;
+}
+.thumb-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.thumb-tile .cover-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: #e5a93c;
+    color: #000;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    z-index: 4;
+}
+.thumb-tile .tile-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 5;
+}
+.thumb-tile:hover .tile-actions {
+    opacity: 1;
+}
+.tile-actions button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.tile-actions button:hover {
+    color: #e5a93c;
+    transform: scale(1.2);
+}
+.tile-actions button.del-thumb {
+    color: #ff5555;
+}
+.tile-actions button:disabled {
+    opacity: 0.25;
+    pointer-events: none;
+}
+
+/* Тайл-плейсхолдер со спиннером */
+.thumb-tile.tile-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+.tile-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 6px;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.tile-loading span {
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+.ph-upload > span {
+    color: var(--text);
+    font-weight: 500;
+    font-size: 13px;
+    position: relative;
+    z-index: 1;
+    background: rgba(0,0,0,0.6);
+    padding: 6px 14px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+}
+
+/* Markdown Toolbar */
+.md-toolbar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+.btn-tool {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.2s;
+}
+.btn-tool:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+/* Подсказки и статистика полей */
+.field-hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: -10px;
+    margin-bottom: 14px;
+    line-height: 1.4;
+    font-style: italic;
+}
+.field-stats {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: -10px;
+    margin-bottom: 16px;
+    text-align: right;
+}
 
 /* Уведомления */
 .toast {
@@ -228,6 +641,55 @@ body {
     transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 2000;
 }
 .toast.show { bottom: 32px; }
+
+/* Live-превью Markdown в настройках */
+.md-preview {
+    margin-top: -8px;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.015);
+    line-height: 1.4;
+}
+.md-preview:empty {
+    display: none;
+}
+.md-preview .w {
+    color: #ffffff;
+    font-weight: 800;
+}
+.md-preview strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Кнопки порядка и отключенное состояние */
+.btn:disabled, .btn-outline:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Кнопка действия внутри toast */
+.toast-act-btn {
+    margin-left: 14px;
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 20px;
+    color: #000;
+    border: 1px solid #000;
+    font-weight: 700;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.toast-act-btn:hover {
+    background: #000;
+    color: #fff;
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
