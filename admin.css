@@ -763,6 +763,25 @@ select.inp option:checked {
     display: block;
 }
 
+/* Панель массового выделения тайлов банка */
+.bank-bulk-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    animation: fade 0.2s ease;
+}
+.bank-bulk-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
 /* Сетка фотобанка */
 .bank-grid {
     display: grid;

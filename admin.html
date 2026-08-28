@@ -124,6 +124,15 @@
                     </select>
                 </div>
 
+                <!-- Панель массового выделения (скрыта по умолчанию) -->
+                <div id="bankBulkPanel" class="bank-bulk-panel" style="display:none;">
+                    <span id="bankBulkCount" class="bank-bulk-count">Выбрано: 0</span>
+                    <div style="display:flex; gap:8px;">
+                        <button id="bankBulkToWorks" class="btn" style="padding: 8px 16px; font-size: 13px;">В работы</button>
+                        <button id="bankBulkReset" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Сбросить</button>
+                    </div>
+                </div>
+
                 <!-- Сетка банка -->
                 <div class="bank-grid" id="bankGrid"></div>
             </section>
@@ -238,7 +247,7 @@
                         <input type="hidden" id="editId">
                         <div class="field" id="editFieldImage">
                             <div class="field-label-row">
-                                <label>Фотография (можно выбрать несколько для блога)</label>
+                                <label id="editPhotoLabel">Фотография (можно выбрать несколько для блога)</label>
                                 <span id="photoCounter" class="photo-counter" style="display:none;">Фото: 0</span>
                             </div>
                             <!-- кнопка "Выбрать из банка" -->
@@ -248,7 +257,7 @@
                                     <span id="uploadText">Загрузить фото (или перетащите сюда)</span>
                                 </div>
                             </div>
-                            <div style="margin-bottom:16px; margin-top:8px;">
+                            <div style="margin-bottom:16px; margin-top:8px;" id="pickFromBankWrapper">
                                 <button type="button" id="pickFromBankBtn" class="btn btn-outline" style="font-size:13px; padding:8px 16px;">
                                     🖼 Выбрать из банка
                                 </button>
@@ -311,6 +320,6 @@
         </div>
     </div>
 
-    <script type="module" src="admin.js?v=10"></script>
+    <script type="module" src="admin.js?v=11"></script>
 </body>
 </html>

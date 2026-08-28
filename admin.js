@@ -23,8 +23,6 @@ const BANK_I18N = {
         uploadProgress:  (k, n) => `Загрузка ${k} / ${n}...`,
         dupSkip:         'Фото уже в банке',
         toWorks:         'В работы',
-        toHero:          'В слайды',
-        toPosts:         'В пост',
         del:             'Удалить',
         usedIn:          places => `Фото используется: ${places}`,
         deleted:         'Удалено',
@@ -38,6 +36,7 @@ const BANK_I18N = {
         pickerNone:      'Не выбрано',
         pickerSelected:  n => `Выбрано: ${n}`,
         empty:           'Банк пуст. Загрузите фото выше.',
+        bulkSelected:    n => `Выбрано: ${n}`,
     },
     en: {
         tabTitle:        'Photo Bank',
@@ -48,8 +47,6 @@ const BANK_I18N = {
         uploadProgress:  (k, n) => `Uploading ${k} / ${n}...`,
         dupSkip:         'Photo already in bank',
         toWorks:         'To works',
-        toHero:          'To slides',
-        toPosts:         'To post',
         del:             'Delete',
         usedIn:          places => `Photo used in: ${places}`,
         deleted:         'Deleted',
@@ -63,6 +60,7 @@ const BANK_I18N = {
         pickerNone:      'Nothing selected',
         pickerSelected:  n => `Selected: ${n}`,
         empty:           'Bank is empty. Upload photos above.',
+        bulkSelected:    n => `Selected: ${n}`,
     }
 };
 const t = () => BANK_I18N[currentAdminLang] || BANK_I18N.ru;
@@ -92,6 +90,9 @@ let isDirty = false;
 function setDirty(val) {
     isDirty = val;
 }
+
+// Флаг контекста модалки: true — открыта из банка (массово или одиночно)
+let modalFromBank = false;
 
 // Уведомления и отменяемые действия
 let toastTimer = null;
@@ -180,13 +181,22 @@ function renderUploadPreviews() {
     
     if (uploadUrls.length === 0 && !isUploading) {
         container.innerHTML = '';
-        uploadText.textContent = 'Загрузить фото (или перетащите сюда)';
-        uploadText.style.display = 'block';
+        // Если открыто из банка — зону загрузки не показываем; uploadText скрыт через applyModalContext
+        if (!modalFromBank) {
+            uploadText.textContent = 'Загрузить фото (или перетащите сюда)';
+            uploadText.style.display = 'block';
+        } else {
+            uploadText.style.display = 'none';
+        }
         return;
     }
     
-    uploadText.textContent = uploadUrls.length > 0 ? '+ Загрузить / добавить ещё фото' : 'Загрузить фото (или перетащите сюда)';
-    uploadText.style.display = 'block';
+    if (!modalFromBank) {
+        uploadText.textContent = uploadUrls.length > 0 ? '+ Загрузить / добавить ещё фото' : 'Загрузить фото (или перетащите сюда)';
+        uploadText.style.display = 'block';
+    } else {
+        uploadText.style.display = 'none';
+    }
     
     const isPostsMode = currentMode === 'posts' || currentMode === 'blog';
     
@@ -354,7 +364,7 @@ async function uploadFiles(files) {
                 uploadUrls.push(finalUrl);
                 setDirty(true);
                 triggerPostDraftAutosave();
-                // Авторегистрация в банк (5.1)
+                // Авторегистрация в банк
                 autoRegisterInBank(data.secure_url, f.name);
             } else {
                 toast('Ошибка загрузки: ' + (data.error?.message || 'Неизвестная ошибка'));
@@ -372,6 +382,7 @@ async function uploadFiles(files) {
 
 // Выбор фото через диалоговое окно
 $('#editImageBtn').onclick = (e) => {
+    if (modalFromBank) return; // из банка — загрузка заблокирована
     if (e.target.closest('.thumb-tile')) return;
     $('#editFileInput').value = '';
     $('#editFileInput').multiple = (currentMode === 'blog' || currentMode === 'posts' || currentMode === 'works');
@@ -387,11 +398,13 @@ $('#editFileInput').addEventListener('change', async e => {
 const phUploadEl = $('#editImageBtn');
 if (phUploadEl) {
     phUploadEl.addEventListener('dragover', e => {
+        if (modalFromBank) return;
         e.preventDefault();
         e.stopPropagation();
         phUploadEl.classList.add('drag-over');
     });
     phUploadEl.addEventListener('dragenter', e => {
+        if (modalFromBank) return;
         e.preventDefault();
         e.stopPropagation();
         phUploadEl.classList.add('drag-over');
@@ -402,6 +415,7 @@ if (phUploadEl) {
         phUploadEl.classList.remove('drag-over');
     });
     phUploadEl.addEventListener('drop', async e => {
+        if (modalFromBank) return;
         e.preventDefault();
         e.stopPropagation();
         phUploadEl.classList.remove('drag-over');
@@ -906,6 +920,40 @@ const resetModal = () => {
     if (postColPreview) postColPreview.classList.remove('tab-hidden');
 };
 
+// ===================== applyModalContext — ситуативное оформление модалки =====================
+// Вызывается после resetModal() + setupFieldsForMode()
+function applyModalContext() {
+    const uploadBtn = $('#editImageBtn');
+    const pickWrapper = $('#pickFromBankWrapper');
+    const photoLabel = $('#editPhotoLabel');
+
+    if (modalFromBank) {
+        // Скрываем зону загрузки и кнопку «Выбрать из банка»
+        if (uploadBtn) uploadBtn.style.display = 'none';
+        if (pickWrapper) pickWrapper.style.display = 'none';
+        // Ситуативная подпись
+        if (photoLabel) {
+            if (currentMode === 'works') {
+                photoLabel.textContent = 'Фото из банка — по одной работе на фото';
+            } else {
+                photoLabel.textContent = 'Фото из банка';
+            }
+        }
+        // uploadText скрыт в renderUploadPreviews при modalFromBank
+        const uploadText = $('#uploadText');
+        if (uploadText) uploadText.style.display = 'none';
+    } else {
+        // Показываем как обычно
+        if (uploadBtn) uploadBtn.style.display = '';
+        if (pickWrapper) pickWrapper.style.display = '';
+        if (photoLabel) {
+            photoLabel.textContent = 'Фотография (можно выбрать несколько для блога)';
+        }
+        const uploadText = $('#uploadText');
+        if (uploadText) uploadText.style.display = 'block';
+    }
+}
+
 function setupFieldsForMode(mode) {
     const modalBox = $('#editModal .modal-box');
     const postColPreview = $('#postColPreview');
@@ -982,12 +1030,32 @@ function setupFieldsForMode(mode) {
     }
 }
 
-$('#addHeroBtn').onclick = () => { currentMode = 'hero'; resetModal(); setupFieldsForMode('hero'); $('#modalTitle').textContent = 'Добавить слайд (Главная)'; openM($('#editModal')); };
-$('#addWorkBtn').onclick = () => { currentMode = 'works'; resetModal(); setupFieldsForMode('works'); $('#modalTitle').textContent = 'Добавить работу (Портфолио)'; openM($('#editModal')); };
+$('#addHeroBtn').onclick = () => {
+    modalFromBank = false;
+    currentMode = 'hero';
+    resetModal();
+    setupFieldsForMode('hero');
+    applyModalContext();
+    $('#modalTitle').textContent = 'Добавить слайд (Главная)';
+    openM($('#editModal'));
+};
+
+$('#addWorkBtn').onclick = () => {
+    modalFromBank = false;
+    currentMode = 'works';
+    resetModal();
+    setupFieldsForMode('works');
+    applyModalContext();
+    $('#modalTitle').textContent = 'Добавить работу (Портфолио)';
+    openM($('#editModal'));
+};
+
 $('#addBlogBtn').onclick = () => {
+    modalFromBank = false;
     currentMode = 'posts';
     resetModal();
     setupFieldsForMode('posts');
+    applyModalContext();
     $('#modalTitle').textContent = 'Добавить пост';
     $('#editFieldDate').value = getTodayFormatted(currentAdminLang);
     restorePostDraftIfExists('new');
@@ -995,9 +1063,11 @@ $('#addBlogBtn').onclick = () => {
 };
 
 function openEdit(item, mode) {
+    modalFromBank = false;
     currentMode = mode;
     resetModal();
     setupFieldsForMode(mode);
+    applyModalContext();
     $('#editId').value = item.id;
     $('#modalTitle').textContent = mode === 'hero' ? 'Редактировать слайд' : (mode === 'works' ? 'Редактировать работу' : 'Редактировать пост');
     
@@ -1027,14 +1097,23 @@ function openEdit(item, mode) {
 }
 
 // ===================== «Открыть модалку с предзагруженным фото» из банка =====================
-function openCreateWithPhoto(mode, urls) {
+// fromBank=true — ситуативный контекст банка (скрыть зону загрузки и кнопку банка)
+function openCreateWithPhoto(mode, urls, fromBank = false) {
+    modalFromBank = fromBank;
     currentMode = mode;
     resetModal();
     setupFieldsForMode(mode);
     uploadUrls = [...urls];
     renderUploadPreviews();
-    const titles = { hero: 'Добавить слайд (Главная)', works: 'Добавить работу (Портфолио)', posts: 'Добавить пост' };
-    $('#modalTitle').textContent = titles[mode] || 'Добавить';
+    applyModalContext();
+    
+    if (fromBank && mode === 'works') {
+        $('#modalTitle').textContent = `Добавить работы (${urls.length})`;
+    } else {
+        const titles = { hero: 'Добавить слайд (Главная)', works: 'Добавить работу (Портфолио)', posts: 'Добавить пост' };
+        $('#modalTitle').textContent = titles[mode] || 'Добавить';
+    }
+    
     if (mode === 'posts') {
         $('#editFieldDate').value = getTodayFormatted(currentAdminLang);
     }
@@ -1267,6 +1346,14 @@ $('#editForm').onsubmit = async (e) => {
     setDirty(false);
     closeM($('#editModal'));
     toast('Сохранено ✓');
+    
+    // После сохранения из банка — сбросить выделение и обновить сетку банка (бейджи)
+    if (modalFromBank) {
+        bankSelectedItems = [];
+        updateBulkPanel();
+        renderBankGrid();
+    }
+    
     loadAllData();
 };
 
@@ -1420,6 +1507,41 @@ if (blogSearchInp) {
 
 // ===================== ФОТОБАНК =====================
 
+// Массовое выделение тайлов банка
+let bankSelectedItems = []; // массив url в порядке выделения
+
+function updateBulkPanel() {
+    const panel = $('#bankBulkPanel');
+    const countEl = $('#bankBulkCount');
+    if (!panel) return;
+    const n = bankSelectedItems.length;
+    if (n > 0) {
+        panel.style.display = 'flex';
+        if (countEl) countEl.textContent = t().bulkSelected(n);
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// Кнопка «В работы» (массово)
+const bankBulkToWorks = $('#bankBulkToWorks');
+if (bankBulkToWorks) {
+    bankBulkToWorks.onclick = () => {
+        if (!bankSelectedItems.length) return;
+        openCreateWithPhoto('works', [...bankSelectedItems], true);
+    };
+}
+
+// Кнопка «Сбросить»
+const bankBulkReset = $('#bankBulkReset');
+if (bankBulkReset) {
+    bankBulkReset.onclick = () => {
+        bankSelectedItems = [];
+        updateBulkPanel();
+        renderBankGrid();
+    };
+}
+
 // Вычисление бейджей использования для url
 function getUsageBadges(rawUrl) {
     const norm = normUrl(rawUrl);
@@ -1502,11 +1624,16 @@ function renderBankGrid() {
             return `<span class="bank-badge ${cls}">${label}</span>`;
         }).join('');
 
+        const isSelected = bankSelectedItems.includes(item.url);
+
         const tile = document.createElement('div');
-        tile.className = 'bank-tile';
+        tile.className = 'bank-tile' + (isSelected ? ' bank-tile--selected' : '');
         tile.innerHTML = `
             <div class="bank-tile__img-wrap">
                 <img src="${opt(item.url)}" alt="${item.name || ''}">
+                <div class="bank-tile__check" title="Выделить">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
             </div>
             ${badgesHtml ? `<div class="bank-tile__badges">${badgesHtml}</div>` : ''}
             <div class="bank-tile__body">
@@ -1516,16 +1643,35 @@ function renderBankGrid() {
             </div>
             <div class="bank-tile__actions">
                 <button class="bank-to-works" type="button">${t().toWorks}</button>
-                <button class="bank-to-hero" type="button">${t().toHero}</button>
-                <button class="bank-to-posts" type="button">${t().toPosts}</button>
                 <button class="bank-del-btn" type="button">${t().del}</button>
             </div>
         `;
 
-        tile.querySelector('.bank-to-works').onclick = () => openCreateWithPhoto('works', [item.url]);
-        tile.querySelector('.bank-to-hero').onclick  = () => openCreateWithPhoto('hero',  [item.url]);
-        tile.querySelector('.bank-to-posts').onclick = () => openCreateWithPhoto('posts', [item.url]);
-        tile.querySelector('.bank-del-btn').onclick  = () => deleteBankItem(item);
+        // Чекбокс (оверлей) — не открывает превью
+        const checkEl = tile.querySelector('.bank-tile__check');
+        checkEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = bankSelectedItems.indexOf(item.url);
+            if (idx === -1) {
+                bankSelectedItems.push(item.url);
+                tile.classList.add('bank-tile--selected');
+            } else {
+                bankSelectedItems.splice(idx, 1);
+                tile.classList.remove('bank-tile--selected');
+            }
+            updateBulkPanel();
+        });
+
+        // Одиночная кнопка «В работы» — через тот же путь (fromBank=true, N=1)
+        tile.querySelector('.bank-to-works').onclick = (e) => {
+            e.stopPropagation();
+            openCreateWithPhoto('works', [item.url], true);
+        };
+
+        tile.querySelector('.bank-del-btn').onclick = (e) => {
+            e.stopPropagation();
+            deleteBankItem(item);
+        };
 
         grid.appendChild(tile);
     });
@@ -1538,11 +1684,16 @@ async function deleteBankItem(item) {
         toastAction(t().usedIn(places.join(', ')), t().del, async () => {
             await dbDel('bank', item.id);
             bankItems = bankItems.filter(b => b.id !== item.id);
+            // Снимаем выделение если было
+            bankSelectedItems = bankSelectedItems.filter(u => u !== item.url);
+            updateBulkPanel();
             renderBankGrid();
         });
     } else {
         await dbDel('bank', item.id);
         bankItems = bankItems.filter(b => b.id !== item.id);
+        bankSelectedItems = bankSelectedItems.filter(u => u !== item.url);
+        updateBulkPanel();
         renderBankGrid();
         toastAction(t().deleted, t().undo, async () => {
             await dbPut('bank', item.id, item);
