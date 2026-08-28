@@ -32,6 +32,7 @@
                 <a href="#hero" class="active" data-tab="hero">Слайды / Slides</a>
                 <a href="#works" data-tab="works">Портфолио / Works</a>
                 <a href="#blog" data-tab="blog">Блог / Blog</a>
+                <a href="#bank" data-tab="bank">Фотобанк / Bank</a>
                 <a href="#settings" data-tab="settings">Тексты / Texts</a>
             </nav>
             <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
@@ -98,6 +99,33 @@
                     <input type="text" id="blogSearch" class="inp" placeholder="Поиск по заголовку...">
                 </div>
                 <div class="grid" id="blogGrid"></div>
+            </section>
+
+            <!-- Вкладка Фотобанк -->
+            <section id="tab-bank" class="tab-content">
+                <div class="header-row">
+                    <h2 id="bankTabTitle">Фотобанк</h2>
+                    <button id="bankImportPublishedBtn" class="btn btn-outline">Импортировать опубликованные</button>
+                </div>
+
+                <!-- Зона загрузки -->
+                <div id="bankUploadZone" class="bank-upload-zone">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.35;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span class="bank-upload-label" id="bankUploadLabel">Нажмите или перетащите фото для загрузки в банк</span>
+                    <div class="bank-upload-progress" id="bankUploadProgress"></div>
+                </div>
+                <input type="file" id="bankFileInput" accept="image/*" multiple style="display:none">
+
+                <!-- Фильтры -->
+                <div class="filter-row">
+                    <input type="text" id="bankSearch" class="inp" placeholder="Поиск по имени файла...">
+                    <select id="bankTagFilter" class="inp">
+                        <option value="">Все теги</option>
+                    </select>
+                </div>
+
+                <!-- Сетка банка -->
+                <div class="bank-grid" id="bankGrid"></div>
             </section>
             
             <!-- Вкладка Тексты сайта -->
@@ -213,9 +241,17 @@
                                 <label>Фотография (можно выбрать несколько для блога)</label>
                                 <span id="photoCounter" class="photo-counter" style="display:none;">Фото: 0</span>
                             </div>
-                            <div class="ph-upload" id="editImageBtn">
-                                <div id="uploadPreviewContainer" class="upload-previews"></div>
-                                <span id="uploadText">Загрузить фото</span>
+                            <!-- кнопка "Выбрать из банка" -->
+                            <div class="bank-pick-row">
+                                <div class="ph-upload" id="editImageBtn" style="flex:1; margin-bottom:0;">
+                                    <div id="uploadPreviewContainer" class="upload-previews"></div>
+                                    <span id="uploadText">Загрузить фото (или перетащите сюда)</span>
+                                </div>
+                            </div>
+                            <div style="margin-bottom:16px; margin-top:8px;">
+                                <button type="button" id="pickFromBankBtn" class="btn btn-outline" style="font-size:13px; padding:8px 16px;">
+                                    🖼 Выбрать из банка
+                                </button>
                             </div>
                             <input type="file" id="editFileInput" accept="image/*" style="display:none">
                         </div>
@@ -251,6 +287,30 @@
         </div>
     </div>
 
-    <script type="module" src="admin.js?v=9"></script>
+    <!-- Модалка пикера из банка -->
+    <div class="modal" id="bankPickerModal">
+        <div class="modal-box modal-box--picker">
+            <div class="modal-header-row">
+                <h3 id="bankPickerTitle">Выбрать из банка</h3>
+            </div>
+            <button class="modal-close" data-close>&times;</button>
+
+            <div class="filter-row" style="margin-bottom:16px;">
+                <input type="text" id="pickerSearch" class="inp" placeholder="Поиск по имени...">
+            </div>
+
+            <div class="picker-grid" id="pickerGrid"></div>
+
+            <div class="picker-footer">
+                <span id="pickerCountLabel" style="font-size:13px; color:var(--text-dim);">Не выбрано</span>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn btn-outline" id="pickerCancelBtn">Отмена</button>
+                    <button type="button" class="btn" id="pickerConfirmBtn">Выбрать (0)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js?v=10"></script>
 </body>
 </html>

@@ -9,6 +9,64 @@ const opt = u => (u && u.includes('res.cloudinary.com') && u.includes('/upload/'
     ? u.replace('/upload/', '/upload/f_auto,q_auto/')
     : u;
 
+// Нормализация URL для сравнения (убирает /f_auto,q_auto сегмент)
+const normUrl = u => (u || '').replace('/upload/f_auto,q_auto/', '/upload/');
+
+// ===================== Локализация банка =====================
+const BANK_I18N = {
+    ru: {
+        tabTitle:        'Фотобанк',
+        uploadLabel:     'Нажмите или перетащите фото для загрузки в банк',
+        importing:       'Импорт опубликованных...',
+        importDone:      n => `Импортировано ${n} фото ✓`,
+        importNone:      'Все фото уже в банке',
+        uploadProgress:  (k, n) => `Загрузка ${k} / ${n}...`,
+        dupSkip:         'Фото уже в банке',
+        toWorks:         'В работы',
+        toHero:          'В слайды',
+        toPosts:         'В пост',
+        del:             'Удалить',
+        usedIn:          places => `Фото используется: ${places}`,
+        deleted:         'Удалено',
+        undo:            'Отменить',
+        restored:        'Восстановлено ✓',
+        badgeWorks:      'работы',
+        badgeHero:       'слайды',
+        badgePosts:      'блог',
+        pickerTitle:     'Выбрать из банка',
+        pickerConfirm:   n => `Выбрать (${n})`,
+        pickerNone:      'Не выбрано',
+        pickerSelected:  n => `Выбрано: ${n}`,
+        empty:           'Банк пуст. Загрузите фото выше.',
+    },
+    en: {
+        tabTitle:        'Photo Bank',
+        uploadLabel:     'Click or drop photos here to upload to bank',
+        importing:       'Importing published...',
+        importDone:      n => `Imported ${n} photos ✓`,
+        importNone:      'All photos already in bank',
+        uploadProgress:  (k, n) => `Uploading ${k} / ${n}...`,
+        dupSkip:         'Photo already in bank',
+        toWorks:         'To works',
+        toHero:          'To slides',
+        toPosts:         'To post',
+        del:             'Delete',
+        usedIn:          places => `Photo used in: ${places}`,
+        deleted:         'Deleted',
+        undo:            'Undo',
+        restored:        'Restored ✓',
+        badgeWorks:      'works',
+        badgeHero:       'slides',
+        badgePosts:      'blog',
+        pickerTitle:     'Pick from bank',
+        pickerConfirm:   n => `Select (${n})`,
+        pickerNone:      'Nothing selected',
+        pickerSelected:  n => `Selected: ${n}`,
+        empty:           'Bank is empty. Upload photos above.',
+    }
+};
+const t = () => BANK_I18N[currentAdminLang] || BANK_I18N.ru;
+
 // Язык админки
 let currentAdminLang = localStorage.getItem('admin_lang') || 'ru';
 const updateAdminLangUI = () => {
@@ -83,7 +141,7 @@ $$('.modal').forEach(m => {
     });
 });
 
-// Сжатие фото
+// ===================== Сжатие фото (возвращает { dataUrl, w, h }) =====================
 function compress(file) {
     return new Promise((res, rej) => {
         const url = URL.createObjectURL(file);
@@ -98,7 +156,7 @@ function compress(file) {
             c.width = w;
             c.height = h;
             c.getContext('2d').drawImage(img, 0, 0, w, h);
-            res(c.toDataURL('image/jpeg', 0.85));
+            res({ dataUrl: c.toDataURL('image/jpeg', 0.85), w, h });
             URL.revokeObjectURL(url);
         };
         img.onerror = rej;
@@ -240,7 +298,33 @@ function renderUploadPreviews() {
     });
 }
 
-// Единый пайплайн загрузки файлов в Cloudinary
+// ===================== Авторегистрация в банк =====================
+async function autoRegisterInBank(rawUrl, fileName) {
+    try {
+        const finalUrl = opt(rawUrl);
+        const norm = normUrl(finalUrl);
+        // Проверяем дубль
+        const existing = bankItems.find(b => normUrl(b.url) === norm);
+        if (existing) return; // уже есть
+        const id = 'bank_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const entry = {
+            id,
+            url: finalUrl,
+            name: fileName || '',
+            tags: [],
+            addedAt: Date.now(),
+            w: 0,
+            h: 0,
+        };
+        await dbPut('bank', id, entry);
+        bankItems.unshift(entry);
+        renderBankGrid();
+    } catch (err) {
+        console.warn('autoRegisterInBank error:', err);
+    }
+}
+
+// Единый пайплайн загрузки файлов в Cloudinary (для модалки редактирования)
 async function uploadFiles(files) {
     if (!files || !files.length) return;
     
@@ -254,21 +338,24 @@ async function uploadFiles(files) {
     
     for (const f of files) {
         try {
-            const base64Data = await compress(f);
+            const { dataUrl, w, h } = await compress(f);
             const formData = new FormData();
-            formData.append('file', base64Data);
+            formData.append('file', dataUrl);
             formData.append('upload_preset', 'Photosite');
             
-            const res = await fetch('https://api.cloudinary.com/v1_1/vi68bvcr/image/upload', {
+            const response = await fetch('https://api.cloudinary.com/v1_1/vi68bvcr/image/upload', {
                 method: 'POST',
                 body: formData
             });
-            const data = await res.json();
+            const data = await response.json();
             
             if (data.secure_url) {
-                uploadUrls.push(opt(data.secure_url));
+                const finalUrl = opt(data.secure_url);
+                uploadUrls.push(finalUrl);
                 setDirty(true);
                 triggerPostDraftAutosave();
+                // Авторегистрация в банк (5.1)
+                autoRegisterInBank(data.secure_url, f.name);
             } else {
                 toast('Ошибка загрузки: ' + (data.error?.message || 'Неизвестная ошибка'));
             }
@@ -358,6 +445,10 @@ $$('.admin-nav a').forEach(a => {
         $$('.tab-content').forEach(x => x.classList.remove('active'));
         a.classList.add('active');
         $('#tab-' + a.dataset.tab).classList.add('active');
+        // Обновляем заголовок банка при переключении
+        if (a.dataset.tab === 'bank') {
+            updateBankTabLabels();
+        }
     };
 });
 
@@ -365,9 +456,12 @@ $$('.admin-nav a').forEach(a => {
 let heroItems = [];
 let workItems = [];
 let postItems = [];
+let bankItems = [];
 let worksSearchQuery = '';
 let worksSelectedTag = '';
 let blogSearchQuery = '';
+let bankSearchQuery = '';
+let bankSelectedTag = '';
 
 // Помощник для даты поста "Сегодня"
 function getTodayFormatted(lang) {
@@ -430,13 +524,11 @@ function updatePostPreview() {
     const lead = $('#editField2').value;
     const content = $('#editField3').value;
     
-    // Подсказка для лида
     const leadHint = $('#leadHint');
     if (leadHint) {
         leadHint.style.display = lead ? 'none' : 'block';
     }
     
-    // Статистика контента (символы и время чтения)
     const contentStats = $('#contentStats');
     if (contentStats) {
         const len = content.length;
@@ -444,7 +536,6 @@ function updatePostPreview() {
         contentStats.textContent = `${len} символов · ~${mins} мин чтения`;
     }
     
-    // Формирование абзацев
     const paragraphs = content.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
     const parasHtml = paragraphs.map(p => `<p>${mdPreview(p)}</p>`).join('');
     
@@ -935,6 +1026,21 @@ function openEdit(item, mode) {
     openM($('#editModal'));
 }
 
+// ===================== «Открыть модалку с предзагруженным фото» из банка =====================
+function openCreateWithPhoto(mode, urls) {
+    currentMode = mode;
+    resetModal();
+    setupFieldsForMode(mode);
+    uploadUrls = [...urls];
+    renderUploadPreviews();
+    const titles = { hero: 'Добавить слайд (Главная)', works: 'Добавить работу (Портфолио)', posts: 'Добавить пост' };
+    $('#modalTitle').textContent = titles[mode] || 'Добавить';
+    if (mode === 'posts') {
+        $('#editFieldDate').value = getTodayFormatted(currentAdminLang);
+    }
+    openM($('#editModal'));
+}
+
 // Дублирование карточки (только для блога)
 async function duplicateItem(item, mode) {
     if (mode !== 'posts' && mode !== 'blog') return;
@@ -1312,13 +1418,424 @@ if (blogSearchInp) {
     });
 }
 
-// Загрузка всех данных
+// ===================== ФОТОБАНК =====================
+
+// Вычисление бейджей использования для url
+function getUsageBadges(rawUrl) {
+    const norm = normUrl(rawUrl);
+    const badges = [];
+    const inWorks = workItems.some(w => normUrl(w.url) === norm);
+    const inHero  = heroItems.some(h => normUrl(h.url) === norm);
+    const inPosts = postItems.some(p => {
+        if (normUrl(p.img) === norm) return true;
+        if (p.images && p.images.some(u => normUrl(u) === norm)) return true;
+        return false;
+    });
+    if (inWorks) badges.push('works');
+    if (inHero)  badges.push('hero');
+    if (inPosts) badges.push('posts');
+    return badges;
+}
+
+function getUsagePlaces(rawUrl) {
+    const l = t();
+    const badges = getUsageBadges(rawUrl);
+    return badges.map(b => {
+        if (b === 'works') return l.badgeWorks;
+        if (b === 'hero')  return l.badgeHero;
+        if (b === 'posts') return l.badgePosts;
+        return b;
+    });
+}
+
+// Форматирование даты
+function fmtDate(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return [
+        String(d.getDate()).padStart(2, '0'),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        d.getFullYear()
+    ].join('.');
+}
+
+// Рендер банка
+function renderBankGrid() {
+    const grid = $('#bankGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    // Обновляем селект тегов банка
+    const allTags = new Set();
+    bankItems.forEach(b => (b.tags || []).forEach(tag => {
+        if (tag && tag.trim()) allTags.add(tag.trim());
+    }));
+    const tagSel = $('#bankTagFilter');
+    if (tagSel) {
+        const prev = bankSelectedTag;
+        tagSel.innerHTML = '<option value="">Все теги</option>' +
+            [...allTags].sort().map(tag =>
+                `<option value="${tag}" ${tag === prev ? 'selected' : ''}>${tag}</option>`
+            ).join('');
+    }
+
+    const q = bankSearchQuery.toLowerCase().trim();
+    let filtered = bankItems.filter(b => {
+        if (bankSelectedTag && !(b.tags || []).includes(bankSelectedTag)) return false;
+        if (q && !(b.name || '').toLowerCase().includes(q)) return false;
+        return true;
+    });
+
+    // Сортировка: новые вверху
+    filtered = filtered.slice().sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+
+    if (!filtered.length) {
+        grid.innerHTML = `<div class="bank-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>${t().empty}</div>`;
+        return;
+    }
+
+    filtered.forEach(item => {
+        const badges = getUsageBadges(item.url);
+        const badgesHtml = badges.map(b => {
+            const cls = b === 'works' ? 'bank-badge--works' : b === 'hero' ? 'bank-badge--hero' : 'bank-badge--posts';
+            const label = b === 'works' ? t().badgeWorks : b === 'hero' ? t().badgeHero : t().badgePosts;
+            return `<span class="bank-badge ${cls}">${label}</span>`;
+        }).join('');
+
+        const tile = document.createElement('div');
+        tile.className = 'bank-tile';
+        tile.innerHTML = `
+            <div class="bank-tile__img-wrap">
+                <img src="${opt(item.url)}" alt="${item.name || ''}">
+            </div>
+            ${badgesHtml ? `<div class="bank-tile__badges">${badgesHtml}</div>` : ''}
+            <div class="bank-tile__body">
+                <div class="bank-tile__name" title="${item.name || ''}">${item.name || '—'}</div>
+                <div class="bank-tile__date">${fmtDate(item.addedAt)}</div>
+                ${item.tags && item.tags.length ? `<div class="bank-tile__tags">${item.tags.join(', ')}</div>` : ''}
+            </div>
+            <div class="bank-tile__actions">
+                <button class="bank-to-works" type="button">${t().toWorks}</button>
+                <button class="bank-to-hero" type="button">${t().toHero}</button>
+                <button class="bank-to-posts" type="button">${t().toPosts}</button>
+                <button class="bank-del-btn" type="button">${t().del}</button>
+            </div>
+        `;
+
+        tile.querySelector('.bank-to-works').onclick = () => openCreateWithPhoto('works', [item.url]);
+        tile.querySelector('.bank-to-hero').onclick  = () => openCreateWithPhoto('hero',  [item.url]);
+        tile.querySelector('.bank-to-posts').onclick = () => openCreateWithPhoto('posts', [item.url]);
+        tile.querySelector('.bank-del-btn').onclick  = () => deleteBankItem(item);
+
+        grid.appendChild(tile);
+    });
+}
+
+// Удаление из банка (с предупреждением об использовании)
+async function deleteBankItem(item) {
+    const places = getUsagePlaces(item.url);
+    if (places.length) {
+        toastAction(t().usedIn(places.join(', ')), t().del, async () => {
+            await dbDel('bank', item.id);
+            bankItems = bankItems.filter(b => b.id !== item.id);
+            renderBankGrid();
+        });
+    } else {
+        await dbDel('bank', item.id);
+        bankItems = bankItems.filter(b => b.id !== item.id);
+        renderBankGrid();
+        toastAction(t().deleted, t().undo, async () => {
+            await dbPut('bank', item.id, item);
+            bankItems.unshift(item);
+            renderBankGrid();
+            toast(t().restored);
+        });
+    }
+}
+
+// Загрузка банка из Firebase
+async function loadBank() {
+    bankItems = await dbAll('bank');
+}
+
+// Обновление лейблов таба банка (i18n)
+function updateBankTabLabels() {
+    const titleEl = $('#bankTabTitle');
+    if (titleEl) titleEl.textContent = t().tabTitle;
+    const labelEl = $('#bankUploadLabel');
+    if (labelEl) labelEl.textContent = t().uploadLabel;
+}
+
+// Загрузка файлов в банк (Cloudinary → bank node)
+async function bankUploadFiles(files) {
+    if (!files || !files.length) return;
+    const progressEl = $('#bankUploadProgress');
+    const zoneEl = $('#bankUploadZone');
+
+    let done = 0;
+    const total = files.length;
+
+    const showProgress = (k) => {
+        if (progressEl) {
+            progressEl.textContent = t().uploadProgress(k, total);
+            progressEl.classList.add('visible');
+        }
+        if (zoneEl) zoneEl.classList.add('drag-over');
+    };
+    const hideProgress = () => {
+        if (progressEl) progressEl.classList.remove('visible');
+        if (zoneEl) zoneEl.classList.remove('drag-over');
+    };
+
+    showProgress(0);
+
+    for (const f of files) {
+        try {
+            showProgress(done);
+            const { dataUrl, w, h } = await compress(f);
+            const formData = new FormData();
+            formData.append('file', dataUrl);
+            formData.append('upload_preset', 'Photosite');
+
+            const response = await fetch('https://api.cloudinary.com/v1_1/vi68bvcr/image/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.secure_url) {
+                const finalUrl = opt(data.secure_url);
+                const norm = normUrl(finalUrl);
+                const dup = bankItems.find(b => normUrl(b.url) === norm);
+                if (dup) {
+                    toast(t().dupSkip);
+                } else {
+                    const id = 'bank_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                    const entry = { id, url: finalUrl, name: f.name, tags: [], addedAt: Date.now(), w, h };
+                    await dbPut('bank', id, entry);
+                    bankItems.unshift(entry);
+                }
+            } else {
+                toast('Ошибка загрузки: ' + (data.error?.message || 'Неизвестная ошибка'));
+            }
+        } catch (err) {
+            console.error(err);
+            toast('Ошибка при загрузке фото');
+        }
+        done++;
+        showProgress(done);
+    }
+
+    hideProgress();
+    renderBankGrid();
+}
+
+// Зона загрузки банка
+const bankZone = $('#bankUploadZone');
+const bankFileInput = $('#bankFileInput');
+
+if (bankZone) {
+    bankZone.onclick = () => {
+        if (bankFileInput) { bankFileInput.value = ''; bankFileInput.click(); }
+    };
+    bankZone.addEventListener('dragover', e => { e.preventDefault(); bankZone.classList.add('drag-over'); });
+    bankZone.addEventListener('dragenter', e => { e.preventDefault(); bankZone.classList.add('drag-over'); });
+    bankZone.addEventListener('dragleave', e => { e.preventDefault(); bankZone.classList.remove('drag-over'); });
+    bankZone.addEventListener('drop', async e => {
+        e.preventDefault();
+        bankZone.classList.remove('drag-over');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            if (files.length) await bankUploadFiles(files);
+        }
+    });
+}
+
+if (bankFileInput) {
+    bankFileInput.addEventListener('change', async e => {
+        const files = Array.from(e.target.files);
+        await bankUploadFiles(files);
+    });
+}
+
+// Фильтры банка
+const bankSearchInp = $('#bankSearch');
+if (bankSearchInp) {
+    bankSearchInp.addEventListener('input', e => {
+        bankSearchQuery = e.target.value;
+        renderBankGrid();
+    });
+}
+const bankTagFilterSel = $('#bankTagFilter');
+if (bankTagFilterSel) {
+    bankTagFilterSel.addEventListener('change', e => {
+        bankSelectedTag = e.target.value;
+        renderBankGrid();
+    });
+}
+
+// Кнопка «Импортировать опубликованные»
+const bankImportBtn = $('#bankImportPublishedBtn');
+if (bankImportBtn) {
+    bankImportBtn.onclick = async () => {
+        bankImportBtn.disabled = true;
+        bankImportBtn.textContent = t().importing;
+
+        try {
+            // Собираем все url из витрин
+            const collections = [
+                'works_ru', 'works_en',
+                'hero_slides_ru', 'hero_slides_en',
+                'posts_ru', 'posts_en'
+            ];
+            const urlSet = new Set();
+            for (const col of collections) {
+                const obj = await dbGetObj(col);
+                if (!obj) continue;
+                for (const key of Object.keys(obj)) {
+                    const item = obj[key];
+                    if (item.url) urlSet.add(normUrl(opt(item.url)));
+                    if (item.img) urlSet.add(normUrl(opt(item.img)));
+                    if (item.images && Array.isArray(item.images)) {
+                        item.images.forEach(u => urlSet.add(normUrl(opt(u))));
+                    }
+                }
+            }
+
+            // Текущие банковые url (нормализованные)
+            const existingNorms = new Set(bankItems.map(b => normUrl(b.url)));
+
+            let added = 0;
+            for (const normU of urlSet) {
+                if (!normU) continue;
+                if (existingNorms.has(normU)) continue;
+                // Восстанавливаем оптимизированный url: добавляем f_auto,q_auto если нет
+                const finalUrl = opt(normU);
+                const id = 'bank_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                const entry = { id, url: finalUrl, name: '', tags: [], addedAt: Date.now(), w: 0, h: 0 };
+                await dbPut('bank', id, entry);
+                bankItems.unshift(entry);
+                existingNorms.add(normU);
+                added++;
+            }
+
+            renderBankGrid();
+            toast(added > 0 ? t().importDone(added) : t().importNone);
+        } catch (err) {
+            console.error(err);
+            toast('Ошибка импорта');
+        }
+
+        bankImportBtn.disabled = false;
+        bankImportBtn.textContent = currentAdminLang === 'ru' ? 'Импортировать опубликованные' : 'Import published';
+    };
+}
+
+// ===================== ПИКЕР ИЗ БАНКА =====================
+let pickerSelectedUrls = new Set();
+
+function renderPickerGrid(query = '') {
+    const grid = $('#pickerGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const q = query.toLowerCase().trim();
+    const items = bankItems.filter(b => !q || (b.name || '').toLowerCase().includes(q));
+    const sorted = items.slice().sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+
+    sorted.forEach(item => {
+        const sel = pickerSelectedUrls.has(item.url);
+        const tile = document.createElement('div');
+        tile.className = 'picker-tile' + (sel ? ' picker-tile--selected' : '');
+        tile.innerHTML = `
+            <img src="${opt(item.url)}" alt="${item.name || ''}">
+            <div class="picker-tile__overlay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+        `;
+        tile.onclick = () => {
+            if (pickerSelectedUrls.has(item.url)) {
+                pickerSelectedUrls.delete(item.url);
+                tile.classList.remove('picker-tile--selected');
+            } else {
+                pickerSelectedUrls.add(item.url);
+                tile.classList.add('picker-tile--selected');
+            }
+            updatePickerCounter();
+        };
+        grid.appendChild(tile);
+    });
+
+    if (!sorted.length) {
+        grid.innerHTML = `<div class="bank-empty" style="grid-column:1/-1;">${t().empty}</div>`;
+    }
+}
+
+function updatePickerCounter() {
+    const n = pickerSelectedUrls.size;
+    const label = $('#pickerCountLabel');
+    if (label) label.textContent = n > 0 ? t().pickerSelected(n) : t().pickerNone;
+    const btn = $('#pickerConfirmBtn');
+    if (btn) btn.textContent = t().pickerConfirm(n);
+}
+
+const pickFromBankBtn = $('#pickFromBankBtn');
+if (pickFromBankBtn) {
+    pickFromBankBtn.onclick = () => {
+        pickerSelectedUrls = new Set();
+        const pickerTitle = $('#bankPickerTitle');
+        if (pickerTitle) pickerTitle.textContent = t().pickerTitle;
+        const pickerSearch = $('#pickerSearch');
+        if (pickerSearch) pickerSearch.value = '';
+        renderPickerGrid();
+        updatePickerCounter();
+        openM($('#bankPickerModal'));
+    };
+}
+
+const pickerSearch = $('#pickerSearch');
+if (pickerSearch) {
+    pickerSearch.addEventListener('input', e => {
+        renderPickerGrid(e.target.value);
+    });
+}
+
+const pickerCancelBtn = $('#pickerCancelBtn');
+if (pickerCancelBtn) {
+    pickerCancelBtn.onclick = () => closeM($('#bankPickerModal'));
+}
+
+const pickerConfirmBtn = $('#pickerConfirmBtn');
+if (pickerConfirmBtn) {
+    pickerConfirmBtn.onclick = () => {
+        if (!pickerSelectedUrls.size) {
+            closeM($('#bankPickerModal'));
+            return;
+        }
+        // Добавляем выбранные url без дублей
+        for (const url of pickerSelectedUrls) {
+            if (!uploadUrls.includes(url)) {
+                uploadUrls.push(url);
+            }
+        }
+        setDirty(true);
+        renderUploadPreviews();
+        updatePostPreview();
+        triggerPostDraftAutosave();
+        closeM($('#bankPickerModal'));
+    };
+}
+
+// ===================== Загрузка всех данных =====================
 async function loadAllData() {
     heroItems = await dbAll('hero_slides_' + currentAdminLang);
     workItems = await dbAll('works_' + currentAdminLang);
     postItems = await dbAll('posts_' + currentAdminLang);
+    await loadBank();
 
     renderHeroGrid();
     renderWorksGrid();
     renderBlogGrid();
+    renderBankGrid();
+    updateBankTabLabels();
 }

@@ -6,6 +6,7 @@
     --text-dim: #999999;
     --primary: #ffffff;
     --radius: 16px;
+    --gray: #999999;
 }
 
 * {
@@ -283,6 +284,13 @@ select.inp option:checked {
 .modal-box.modal-box--wide {
     max-width: 860px;
     width: 95%;
+}
+
+/* Широкая модалка для пикера из банка */
+.modal-box.modal-box--picker {
+    max-width: 900px;
+    width: 95%;
+    max-height: 85vh;
 }
 
 .modal-close {
@@ -709,3 +717,283 @@ select.inp option:checked {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* ===================== ФОТОБАНК ===================== */
+
+/* Зона загрузки в банке */
+.bank-upload-zone {
+    width: 100%;
+    min-height: 120px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 24px;
+    transition: 0.2s;
+    margin-bottom: 20px;
+    position: relative;
+}
+.bank-upload-zone:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+}
+.bank-upload-zone.drag-over {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.005);
+}
+.bank-upload-zone .bank-upload-label {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 500;
+    pointer-events: none;
+}
+.bank-upload-progress {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 600;
+    display: none;
+}
+.bank-upload-progress.visible {
+    display: block;
+}
+
+/* Сетка фотобанка */
+.bank-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* Тайл фотобанка */
+.bank-tile {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    position: relative;
+}
+.bank-tile:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.bank-tile.bank-tile--selected {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+}
+.bank-tile__img-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 66%;
+    overflow: hidden;
+    background: #181818;
+}
+.bank-tile__img-wrap img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.bank-tile__check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.bank-tile__check svg {
+    opacity: 0;
+    transition: 0.15s;
+}
+.bank-tile--selected .bank-tile__check {
+    background: #fff;
+    border-color: #fff;
+}
+.bank-tile--selected .bank-tile__check svg {
+    opacity: 1;
+}
+
+/* Бейджи использования */
+.bank-tile__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 10px 0;
+}
+.bank-badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.bank-badge--works { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+.bank-badge--hero  { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
+.bank-badge--posts { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+
+/* Тело тайла банка */
+.bank-tile__body {
+    padding: 10px 12px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+.bank-tile__name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bank-tile__date {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+.bank-tile__tags {
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Кнопки действий тайла банка */
+.bank-tile__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px 10px;
+}
+.bank-tile__actions button {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    font-size: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.bank-tile__actions button:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border-color: rgba(255,255,255,0.3);
+}
+.bank-tile__actions .bank-del-btn:hover {
+    color: #ff5555;
+    border-color: #ff5555;
+}
+
+/* Пустое состояние банка */
+.bank-empty {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-dim);
+    font-size: 14px;
+    grid-column: 1 / -1;
+}
+.bank-empty svg {
+    display: block;
+    margin: 0 auto 16px;
+    opacity: 0.3;
+}
+
+/* Сетка пикера банка */
+.picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 4px;
+}
+.picker-tile {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background: #181818;
+    cursor: pointer;
+    transition: 0.2s;
+    aspect-ratio: 1 / 1;
+}
+.picker-tile:hover {
+    border-color: rgba(255,255,255,0.3);
+}
+.picker-tile.picker-tile--selected {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.25);
+}
+.picker-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.picker-tile__overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.15s;
+}
+.picker-tile--selected .picker-tile__overlay {
+    opacity: 1;
+}
+.picker-tile__overlay svg {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+/* Кнопка-ряд внизу пикера */
+.picker-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+/* Кнопка "Выбрать из банка" рядом с зоной загрузки */
+.bank-pick-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+/* Настройки групп */
+.settings-group {
+    display: flex;
+    flex-direction: column;
+}
