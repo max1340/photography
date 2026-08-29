@@ -463,8 +463,58 @@ $$('.admin-nav a').forEach(a => {
         if (a.dataset.tab === 'bank') {
             updateBankTabLabels();
         }
+        // Закрываем drawer после переключения таба (мобильный)
+        closeMobileDrawer();
     };
 });
+
+// ===================== Мобильный drawer (бургер-меню) =====================
+function openMobileDrawer() {
+    const sidebar = $('.sidebar');
+    const backdrop = $('#sidebarBackdrop');
+    const burger = $('#burgerAdminBtn');
+    if (!sidebar || !backdrop) return;
+    sidebar.classList.add('open');
+    backdrop.classList.add('show');
+    if (burger) burger.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMobileDrawer() {
+    const sidebar = $('.sidebar');
+    const backdrop = $('#sidebarBackdrop');
+    const burger = $('#burgerAdminBtn');
+    if (!sidebar || !backdrop) return;
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+    if (burger) burger.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+}
+
+const burgerBtn = $('#burgerAdminBtn');
+if (burgerBtn) {
+    burgerBtn.addEventListener('click', () => {
+        const sidebar = $('.sidebar');
+        if (sidebar && sidebar.classList.contains('open')) {
+            closeMobileDrawer();
+        } else {
+            openMobileDrawer();
+        }
+    });
+}
+
+const sidebarBackdrop = $('#sidebarBackdrop');
+if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener('click', closeMobileDrawer);
+}
+
+// На resize > 860px принудительно закрываем drawer
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 860) {
+        closeMobileDrawer();
+    }
+});
+
 
 // Состояние списков и фильтров
 let heroItems = [];

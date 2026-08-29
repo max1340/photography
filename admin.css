@@ -1016,3 +1016,316 @@ select.inp option:checked {
     display: flex;
     flex-direction: column;
 }
+
+/* =====================================================================
+   MOBILE ADAPTATION  ≤860px  (drawer sidebar, topbar, content, modals)
+   Все изменения ТОЛЬКО внутри этих media-запросов.
+   Десктоп (>860px) не затронут.
+   ===================================================================== */
+
+/* ── Мобильный топбар ── */
+.mobile-topbar {
+    display: none;
+}
+
+/* ── Бэкдроп ── */
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .6);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+}
+.sidebar-backdrop.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+@media (max-width: 860px) {
+
+    /* ── Предотвращаем горизонтальный скролл ── */
+    body,
+    .dashboard,
+    .main-content {
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+
+    /* ── Дашборд: вертикальная раскладка ── */
+    .dashboard {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    /* ── Мобильный топбар ── */
+    .mobile-topbar {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        height: 56px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        flex-shrink: 0;
+    }
+
+    .mobile-topbar__logo {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+    .mobile-topbar__logo span {
+        font-weight: 400;
+        color: var(--text-dim);
+        font-size: 13px;
+        letter-spacing: 0;
+        margin-left: 6px;
+    }
+
+    /* ── Кнопка-бургер ── */
+    .burger-btn {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--text);
+        cursor: pointer;
+        border-radius: 10px;
+        flex-shrink: 0;
+        transition: background .2s;
+    }
+    .burger-btn:hover,
+    .burger-btn:focus-visible {
+        background: rgba(255, 255, 255, .07);
+    }
+
+    /* ── Сайдбар → drawer ── */
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 280px;
+        z-index: 1001;
+        transform: translateX(-100%);
+        transition: transform .3s ease;
+        overflow-y: auto;
+        padding: 24px 20px;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Длинные подписи в сайдбаре не растягивают панель */
+    .sidebar a,
+    .sidebar span,
+    .sidebar button {
+        white-space: normal;
+        word-break: break-word;
+        max-width: 100%;
+    }
+
+    /* Ссылки навигации — достаточный тач-таргет */
+    .admin-nav a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* ── Контент ── */
+    .main-content {
+        padding: 16px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* ── Шапка секции ── */
+    .header-row {
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .header-row h2 {
+        font-size: 20px;
+    }
+    /* Кнопка "+ Добавить" не схлопывается */
+    .header-row > .btn,
+    .header-row > .btn-outline {
+        flex: 0 0 auto;
+    }
+    /* Дочерний flex-контейнер в заголовке секции Текстов */
+    .header-row > div {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* ── Сетка карточек ── */
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+    }
+    .card img {
+        height: 180px;
+    }
+    .card-actions {
+        padding: 0 16px 16px;
+    }
+    .card-actions button {
+        min-height: 40px;
+    }
+
+    /* ── Фильтр-строка ── */
+    .filter-row input.inp {
+        flex: 1 1 100%;
+    }
+    .filter-row select.inp {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    /* ── Тост — вместо right:32px используем translateY ── */
+    .toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        /* перекрываем десктопные значения */
+        transform: translateY(calc(100% + 24px));
+        transition: transform .4s cubic-bezier(0.16, 1, 0.3, 1), opacity .3s;
+        text-align: center;
+        width: auto;
+        /* сбрасываем десктопный right, который мешает */
+    }
+    .toast.show {
+        transform: translateY(0);
+        bottom: 16px;
+    }
+
+    /* ── Модалки ── */
+    .modal-box {
+        padding: 24px 18px;
+        max-width: 100%;
+        border-radius: 16px;
+        max-height: 92vh;
+        width: calc(100% - 24px);
+        margin: 0 12px;
+    }
+
+    /* Строка даты в модалке */
+    #editDateFieldRow {
+        flex-wrap: wrap;
+    }
+    #editDateFieldRow .inp {
+        flex: 1 1 100%;
+    }
+    #editDateFieldRow #btnDateToday {
+        flex: 1 1 100%;
+    }
+
+    /* Зона загрузки фото */
+    .ph-upload {
+        min-height: 140px;
+    }
+
+    /* Двухколоночные статы → 1 колонка */
+    #settingsForm > div[style*="grid-template-columns:1fr 1fr"],
+    #settingsForm > div[style*="grid-template-columns: 1fr 1fr"] {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    /* ── Логин ── */
+    .login-box {
+        padding: 28px 20px;
+    }
+
+    /* ── Тач-таргеты (все кнопки и ссылки) ── */
+    .btn,
+    .btn-outline {
+        min-height: 44px;
+    }
+    .admin-nav a {
+        min-height: 44px;
+    }
+
+    /* ── Пикер банка ── */
+    .picker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        max-height: 45vh;
+    }
+
+    /* ── Фотобанк: upload zone ── */
+    .bank-upload-zone {
+        padding: 16px;
+    }
+
+    /* ── Bulk-панель банка ── */
+    .bank-bulk-panel {
+        flex-wrap: wrap;
+    }
+
+    /* ── Длинные URL / имена файлов не ломают layout ── */
+    .bank-tile__name {
+        word-break: break-all;
+        white-space: normal;
+    }
+
+    /* ── settingsForm: убираем ограничение max-width из inline-стиля ── */
+    #settingsForm {
+        max-width: 100% !important;
+    }
+
+    /* ── Кнопка «Сохранить» в модалке всегда видна (sticky) ── */
+    .save-modal-btn {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        background: var(--primary);
+    }
+
+    /* ── Модалка пикера: высота сетки — чтобы footer был виден ── */
+    .modal-box--picker .picker-grid {
+        max-height: 38vh;
+    }
+
+    /* ── bank-upload-zone: текст не уходит за экран ── */
+    .bank-upload-label {
+        text-align: center;
+        word-break: break-word;
+    }
+}
+
+/* ── ≤480px: 1 колонка везде ── */
+@media (max-width: 480px) {
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Превью-миниатюры 70×70 */
+    .thumb-tile {
+        width: 70px;
+        height: 70px;
+    }
+
+    /* Пикер: 3 колонки */
+    .picker-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Сетка банка — 2 колонки */
+    .bank-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+}
+
